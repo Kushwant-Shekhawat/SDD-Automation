@@ -1,0 +1,112 @@
+name: SDD Automation CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # ── Main test run: all 69 scenarios, headless, 4 threads ──────────────────
+  test:
+    name: Run All Tests (Chromium)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Install Playwright browsers
+        run: ./gradlew playwright --args="install --with-deps chromium"
+
+      - name: Run all tests (headless, 4 threads)
+        run: ./gradlew test -DsuiteFile=src/test/resources/testng/testng.xml -DENV=ci
+        env:
+          browser.headless: "true"
+
+      - name: Upload Cucumber report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-report
+          path: build/reports/cucumber/
+          retention-days: 30
+
+      - name: Upload Extent report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-report
+          path: build/reports/extent/
+          retention-days: 30
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots
+          path: build/reports/screenshots/
+          retention-days: 7
+
+      - name: Upload test results (TestNG XML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testng-results
+          path: build/reports/tests/
+          retention-days: 30
+
+  # ── Cross-browser matrix: runs only after main job passes ─────────────────
+  cross-browser:
+    name: Cross-Browser (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [ firefox, webkit ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Install Playwright browsers
+        run: ./gradlew playwright --args="install --with-deps ${{ matrix.browser }}"
+
+      - name: Run tests on ${{ matrix.browser }}
+        run: >
+          ./gradlew test
+          -DsuiteFile=src/test/resources/testng/testng-cross-browser.xml
+          -Dbrowser.type=${{ matrix.browser }}
+          -Dcucumber.filter.tags="not @visual"
+          -DENV=ci
+
+      - name: Upload ${{ matrix.browser }} report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.browser }}
+          path: build/reports/cucumber/
+          retention-days: 14

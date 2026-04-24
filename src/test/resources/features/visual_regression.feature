@@ -1,3 +1,4 @@
+@visual
 Feature: Visual regression testing
   As a QA engineer
   I want to compare page screenshots against baselines

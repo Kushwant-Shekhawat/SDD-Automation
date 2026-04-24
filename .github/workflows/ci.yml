@@ -27,7 +27,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Install Playwright browsers
-        run: ./gradlew playwright --args="install --with-deps chromium"
+        run: ./gradlew installPlaywright
 
       - name: Run all tests (headless, 4 threads)
         run: ./gradlew test -DsuiteFile=src/test/resources/testng/testng.xml -DENV=ci
@@ -93,7 +93,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Install Playwright browsers
-        run: ./gradlew playwright --args="install --with-deps ${{ matrix.browser }}"
+        run: ./gradlew installPlaywright -Dbrowser=${{ matrix.browser }}
 
       - name: Run tests on ${{ matrix.browser }}
         run: >

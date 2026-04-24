@@ -42,10 +42,13 @@ dependencies {
 }
 
 // Downloads Playwright browser binaries
+// Usage: ./gradlew installPlaywright                    (chromium default)
+//        ./gradlew installPlaywright -Dbrowser=firefox
+//        ./gradlew installPlaywright -Dbrowser=webkit
 task installPlaywright(type: JavaExec, dependsOn: classes) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.microsoft.playwright.CLI'
-    args 'install', '--with-deps', 'chromium'
+    args 'install', '--with-deps', System.getProperty('browser', 'chromium')
 }
 
 test {

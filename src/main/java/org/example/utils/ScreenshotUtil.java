@@ -35,15 +35,17 @@ public class ScreenshotUtil {
         lastFailurePath.remove();
     }
 
-    public static void captureStepScreenshot(Page page) {
+    public static String captureStepScreenshot(Page page) {
         String folder = scenarioFolder.get();
-        if (page == null || folder == null) return;
+        if (page == null || folder == null) return null;
         try {
             int n = stepCounter.get().incrementAndGet();
             Path path = Paths.get(folder, String.format("step_%02d.png", n));
             page.screenshot(new Page.ScreenshotOptions().setPath(path).setFullPage(true));
+            return path.toAbsolutePath().toString();
         } catch (Exception e) {
             LoggerUtil.warn("Step screenshot failed: " + e.getMessage());
+            return null;
         }
     }
 
@@ -65,6 +67,11 @@ public class ScreenshotUtil {
 
     public static String getLastFailurePath() {
         return lastFailurePath.get();
+    }
+
+    public static int getStepCount() {
+        AtomicInteger counter = stepCounter.get();
+        return counter != null ? counter.get() : 0;
     }
 
     public static void cleanupScenario() {

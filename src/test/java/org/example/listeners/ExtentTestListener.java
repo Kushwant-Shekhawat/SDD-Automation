@@ -5,7 +5,6 @@ import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import org.example.utils.ConfigReader;
 import org.example.utils.LoggerUtil;
-import org.example.utils.ScreenshotUtil;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
@@ -14,6 +13,10 @@ public class ExtentTestListener implements ITestListener {
 
     private static volatile ExtentReports extentReports;
     private static final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
+
+    public static ExtentTest getCurrentTest() {
+        return extentTest.get();
+    }
 
     @Override
     public synchronized void onStart(ITestContext context) {
@@ -58,14 +61,6 @@ public class ExtentTestListener implements ITestListener {
     @Override
     public void onTestFailure(ITestResult result) {
         extentTest.get().fail(result.getThrowable());
-        String screenshotPath = ScreenshotUtil.getLastFailurePath();
-        if (screenshotPath != null) {
-            try {
-                extentTest.get().addScreenCaptureFromPath(screenshotPath, "Failure Screenshot");
-            } catch (Exception e) {
-                LoggerUtil.warn("Could not attach screenshot to report: " + e.getMessage());
-            }
-        }
     }
 
     @Override

@@ -94,6 +94,11 @@ All page objects extend `BasePage`. Locators use `data-test` attributes wherever
 - Cross-browser job: Firefox + WebKit (runs after main passes)
 - Workflow file: `.github/workflows/ci.yml`
 
+## Known Flakiness Fixes
+- `iCloseTheNavigationMenu` is defensive — skips click if menu is already closed (handles CI React re-render after reset app state)
+- `iClickTheResetAppStateLink` waits for `.bm-menu-wrap[aria-hidden='false']` after click to let DOM settle on slow CI machines
+- `iPressTheBrowserBackButton` uses `GoBackOptions().setTimeout(15000)` + `waitForLoadState(DOMCONTENTLOADED)` for stable navigation
+
 ## Conventions
 - Never modify `config-local.properties` in commits
 - Never commit `.claude/` directory (gitignored)

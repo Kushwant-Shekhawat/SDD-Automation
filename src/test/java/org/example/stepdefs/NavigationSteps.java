@@ -30,7 +30,9 @@ public class NavigationSteps {
 
     @When("I close the navigation menu")
     public void iCloseTheNavigationMenu() {
-        ctx.navigationComponent.closeMenu();
+        if (ctx.navigationComponent.isMenuVisible()) {
+            ctx.navigationComponent.closeMenu();
+        }
     }
 
     @And("I click the logout link")
@@ -41,6 +43,10 @@ public class NavigationSteps {
     @And("I click the reset app state link")
     public void iClickTheResetAppStateLink() {
         ctx.page.locator("#reset_sidebar_link").click();
+        // Wait for the menu to settle after the React state reset before next interaction
+        ctx.page.locator(".bm-menu-wrap[aria-hidden='false']")
+                .waitFor(new com.microsoft.playwright.Locator.WaitForOptions()
+                        .setTimeout(5000));
     }
 
     @Then("I should be on the login page")

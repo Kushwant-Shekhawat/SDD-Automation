@@ -1,574 +1,165 @@
-# SDD-Automation Framework - Reporting Specification (CORRECTED)
+# SDD-Automation Framework - Reporting Specification
 
 ## 1. REPORTING OVERVIEW
 
-### Strategy
-- **Tool**: ExtentReports 5.0.9
-- **Format**: HTML Dashboard
-- **Screenshots**: Attached to failed tests
-- **Categorization**: Tests grouped by category
-- **Timeline**: Execution timeline visualization
-- **CI/CD**: Report artifacts uploaded
+Each test run produces two HTML reports:
 
-### Features
-- Test execution summary (Pass/Fail/Skip)
-- Detailed test logs
-- Screenshots on failure
-- Execution time tracking
-- Test categorization
-- Environment details
-- Dashboard metrics
+| Report | Tool | Output Path |
+|--------|------|-------------|
+| Extent Report | ExtentReports 5.0.9 (custom `ITestListener`) | `build/reports/extent/ExtentReport.html` |
+| Cucumber Report | Masterthought `cucumber-reporting:5.7.5` | `build/reports/cucumber/html/cucumber-html-reports/overview-features.html` |
+
+Plus intermediate outputs:
+- **Cucumber JSON**: `build/reports/cucumber/cucumber-report.json` — source for Masterthought
+- **Screenshots**: `build/reports/screenshots/<timestamp>/<scenario>/step_NN.png`
+- **Visual diffs**: `build/reports/visual/diffs/` (only when `@visual` runs)
 
 ---
 
-## 2. GRADLE DEPENDENCIES
+## 2. EXTENT REPORT
 
-Add to build.gradle:
+### How it works
+`ExtentTestListener` implements TestNG's `ITestListener`. It is registered in all `testng.xml` files via `<listeners>`. Since all scenarios run through `CucumberRunner`, each scenario maps to one `ExtentTest`.
 
+### Screenshot attachment
+Screenshots are **not** captured inside `ExtentTestListener` itself. They are attached in `Hooks.java`:
+- `@AfterStep` — captures a step screenshot and attaches it to the current `ExtentTest` via `MediaEntityBuilder.createScreenCaptureFromPath(relativePath)`
+- `@After` — captures failure screenshot if scenario failed and attaches to `ExtentTest`
 
-testImplementation 'com.aventstack:extentreports:5.0.9'
-testImplementation 'com.aventstack:extentreports-testng-adapter:1.10.10'
+Paths must be **relative from the report HTML file location** (`build/reports/extent/`). `Hooks.java` computes this with:
+```java
+REPORT_DIR.relativize(Paths.get(absolutePath).toAbsolutePath())
+```
 
+### Key methods in `ExtentTestListener.java`
 
----
+```java
+public static ExtentTest getCurrentTest()   // thread-safe via ThreadLocal
+```
 
-## 3. CONFIGURATION
-
-Add to config.properties:
-
-
-extent.report.enabled=true
-extent.report.title=SDD-Automation Test Report
-extent.report.author=QA Team
-extent.report.theme=standard
-extent.report.path=build/reports/extentreports/index.html
-screenshot.on.failure=true
-screenshot.path=build/reports/screenshots
-
-
----
-
-## 4. REPORT GENERATION
-
-### Report Files Generated
-
-
-build/reports/
-├── extentreports/
-│   ├── index.html (Main dashboard)
-│   └── screenshots/
-│       ├── test-name-1.png
-│       ├── test-name-2.png
-│       └── ...
-└── testng-results/
-    └── index.html
-
-
----
-
-## 5. EXTENT TEST LISTENER
-
-### Class: ExtentTestListener.java
-
-**Implements**: ITestListener
-
-**Key Methods**:
-- onStart(ITestContext context): Initialize ExtentReports
-- onTestStart(ITestResult result): Create ExtentTest
-- onTestSuccess(ITestResult result): Log pass with screenshot
-- onTestFailure(ITestResult result): Log failure with exception
-- onTestSkipped(ITestResult result): Log skipped status
-- onFinish(ITestContext context): Generate HTML report
-
-**Features**:
-- Thread-safe using ThreadLocal<ExtentTest>
-- Automatic screenshot on failure
-- Test categories from TestNG groups
-- System information included
-- Execution timestamps
-
-### Implementation Outline
-
-java
-public class ExtentTestListener implements ITestListener {
-    
-    private static volatile ExtentReports extentReports;
-    private static final ThreadLocal<ExtentTest> extentTest = new ThreadLocal<>();
-
-    @Override
-    public synchronized void onStart(ITestContext context) {
-        if (extentReports == null) {
-            initializeExtentReports(context);
-        }
-    }
-    
-    @Override
-    public void onTestStart(ITestResult result) {
-        String testName = result.getMethod().getMethodName();
-        String description = result.getMethod().getDescription();
-        ExtentTest test = extentReports.createTest(testName, description);
-        
-        String[] groups = result.getMethod().getGroups();
-        for (String group : groups) {
-            test.assignCategory(group);
-        }
-        extentTest.set(test);
-    }
-    
-    @Override
-    public void onTestSuccess(ITestResult result) {
-        extentTest.get().pass("Test PASSED");
-    }
-    
-    @Override
-    public void onTestFailure(ITestResult result) {
-        extentTest.get().fail(result.getThrowable());
-        attachScreenshot();
-    }
-    
-    @Override
-    public void onTestSkipped(ITestResult result) {
-        extentTest.get().skip("Test SKIPPED");
-    }
-    
-    @Override
-    public void onFinish(ITestContext context) {
-        extentReports.flush();
-    }
-    
-    private void initializeExtentReports(ITestContext context) {
-        String reportPath = ConfigReader.getConfig("extent.report.path");
-        new java.io.File(reportPath).getParentFile().mkdirs();
-        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
-        sparkReporter.config().setReportName(ConfigReader.getConfig("extent.report.title", "SDD-Automation Report"));
-        sparkReporter.config().setTheme(Theme.STANDARD);
-        extentReports = new ExtentReports();
-        extentReports.attachReporter(sparkReporter);
-        addSystemInfo(context);
-    }
-    
-    private void addSystemInfo(ITestContext context) {
-        extentReports.setSystemInfo("Test Suite", context.getSuite().getName());
-        extentReports.setSystemInfo("Browser", ConfigReader.getBrowserType());
-        extentReports.setSystemInfo("Headless", String.valueOf(ConfigReader.isHeadless()));
-        extentReports.setSystemInfo("Java Version", System.getProperty("java.version"));
-        extentReports.setSystemInfo("OS", System.getProperty("os.name"));
-    }
-    
-    private void attachScreenshot() {
-        try {
-            String screenshotPath = ScreenshotUtil.captureScreenshot(WebDriverManager.getPage(), "screenshot");
-            if (screenshotPath != null) {
-                extentTest.get().addScreenCaptureFromPath(screenshotPath);
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to attach screenshot: " + e.getMessage());
-        }
-    }
-    
-    public static ExtentTest getTest() {
-        return extentTest.get();
-    }
-    
-    public static void removeTest() {
-        extentTest.remove();
-    }
-}
-
-
----
-
-## 6. TESTNG.XML LISTENER CONFIGURATION
-
-xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-current.dtd">
-<suite name="SDD-Automation Suite" parallel="classes" thread-count="1">
-    
-    <listeners>
-        <listener class-name="org.example.listeners.ExtentTestListener"/>
-        <listener class-name="com.aventstack.extentreports.testng.adapter.ExtentITestListenerAdapter"/>
-    </listeners>
-    
-    <test name="SDD-Automation Tests">
-        <classes>
-            <class name="org.example.runners.CucumberRunner"/>
-            <class name="org.example.tests.LoginTests"/>
-            <class name="org.example.tests.ProductsTests"/>
-            <class name="org.example.tests.ShoppingCartTests"/>
-            <class name="org.example.tests.CheckoutTests"/>
-        </classes>
-    </test>
-    
-</suite>
-
-
----
-
-## 7. SCREENSHOT UTILITY
-
-### Class: ScreenshotUtil.java
-
-java
-public class ScreenshotUtil {
-    
-    public static String captureScreenshot(Page page, String testName) {
-        if (!ConfigReader.shouldTakeScreenshots()) {
-            return null;
-        }
-        
-        String timestamp = System.currentTimeMillis() + "";
-        String fileName = testName + "_" + timestamp + ".png";
-        String path = ConfigReader.getScreenshotPath() + "/" + fileName;
-        
-        new File(ConfigReader.getScreenshotPath()).mkdirs();
-        
-        page.screenshot(new Page.ScreenshotOptions()
-            .setPath(Paths.get(path))
-        );
-        
-        return path;
-    }
-    
-    public static void attachScreenshotToReport(String filePath) {
-        if (filePath != null) {
-            ExtentTestListener.getTest()
-                .addScreenCaptureFromPath(filePath);
-        }
-    }
-}
-
-
----
-
-## 8. USAGE IN TEST CLASSES
-
-### TestNG Test with Reporting
-
-java
-public class LoginTests extends BaseTest {
-    
-    @Test(groups = {"smoke"}, description = "User can login with valid credentials")
-    public void testLoginWithValidCredentials() {
-        ExtentTestListener.getTest()
-            .info("Test: User login with valid credentials");
-        
-        LoginPage loginPage = new LoginPage(page);
-        ExtentTestListener.getTest()
-            .info("Entering username: standard_user");
-        loginPage.enterUsername("standard_user");
-        
-        ExtentTestListener.getTest()
-            .info("Entering password");
-        loginPage.enterPassword("secret_sauce");
-        
-        ExtentTestListener.getTest()
-            .info("Clicking login button");
-        loginPage.clickLoginButton();
-        
-        assertTrue(page.url().contains("inventory.html"));
-        ExtentTestListener.getTest()
-            .pass("Login successful");
-    }
-    
-    @Test(description = "User cannot login with invalid password")
-    public void testLoginWithInvalidPassword() {
-        ExtentTestListener.getTest()
-            .info("Testing invalid password scenario");
-        
-        LoginPage loginPage = new LoginPage(page);
-        loginPage.login("standard_user", "wrong_password");
-        
-        assertTrue(loginPage.isErrorMessageDisplayed());
-        ExtentTestListener.getTest()
-            .pass("Error message displayed as expected");
-    }
-}
-
-
----
-
-## 9. USAGE IN CUCUMBER STEPS
-
-### Step Definitions with Reporting
-
-java
-@When("User enters username {string}")
-public void userEntersUsername(String username) {
-    ExtentTestListener.getTest()
-        .info("Entering username: " + username);
-    loginPage.enterUsername(username);
-}
-
-@Then("User should see the products page")
-public void userShouldSeeProductsPage() {
-    ExtentTestListener.getTest()
-        .info("Verifying products page is displayed");
-    assertTrue(page.url().contains("inventory.html"));
-    ExtentTestListener.getTest()
-        .pass("Products page verified");
-}
-
-
----
-
-## 10. REPORT DASHBOARD FEATURES
-
-### Dashboard Displays
-
-- Test Summary: Total, Passed, Failed, Skipped
-- Pass Rate Percentage
-- Execution Time
-- Test Timeline
-- Category Distribution
-- Environment Information
-- System Details
-
-### Test Details View
-
-- Test name and description
-- Execution time
-- Pass/Fail/Skip status
-- Detailed logs
-- Screenshots
-- Exception details
-- Stack traces
-
----
-
-## 11. REPORT CUSTOMIZATION
-
-### Report Theme Options
-
-
-Standard (default blue)
-Dark (dark theme)
-Light (light minimal)
-
-
-### Customize Report
-
-java
-sparkReporter.config().setTheme(Theme.DARK);
-sparkReporter.config().setDocumentTitle("Company Test Report");
-sparkReporter.config().setReportName("Automation Test Results");
-
-
----
-
-## 12. RUNNING TESTS AND GENERATING REPORTS
-
-### Command: Generate Reports
-
-bash
-# Sequential execution with reports
-gradle test -DsuiteFile=testng.xml
-
-# Parallel execution with reports
-gradle test --parallel --max-workers=4 -DsuiteFile=testng-parallel.xml
-
-# Smoke tests with reports
-gradle test -DsuiteFile=testng-smoke.xml
-
-
-### View Reports
-
-bash
-# Open in browser
-open build/reports/extentreports/index.html
-
-# Or navigate to
-file:///path/to/build/reports/extentreports/index.html
-
-
----
-
-## 13. CI/CD INTEGRATION
-
-### GitHub Actions
-
-yaml
-- name: Run tests
-  run: gradle test
-
-- name: Upload test reports
-  if: always()
-  uses: actions/upload-artifact@v2
-  with:
-    name: test-reports
-    path: build/reports/
-
-
-### Jenkins
-
-groovy
-post {
-    always {
-        archiveArtifacts artifacts: 'build/reports/**'
-        publishHTML([
-            reportDir: 'build/reports/extentreports',
-            reportFiles: 'index.html',
-            reportName: 'ExtentReports'
-        ])
-    }
-}
-
-
----
-
-## 14. CUCUMBER REPORTS
-
-### Cucumber HTML Report
-
-
-build/reports/cucumber/
-├── cucumber-report.html
-├── cucumber-report.json
-└── cucumber-report.xml
-
-
-### Generate Cucumber Report
-
-bash
-gradle test -Dtest=CucumberRunner
-
-
-### View Cucumber Report
-
-bash
-open build/reports/cucumber/cucumber-report.html
-
-
----
-
-## 15. COMBINED REPORTS
-
-### Execution produces
-
-1. **ExtentReports**: build/reports/extentreports/index.html
-   - TestNG test results
-   - With screenshots
-   - System information
-   
-2. **Cucumber Reports**: build/reports/cucumber/cucumber-report.html
-   - BDD feature execution
-   - Step-by-step details
-   - Scenario summaries
-
-3. **TestNG Reports**: build/reports/testng-results/
-   - JUnit XML format
-   - For CI/CD integration
-
----
-
-## 16. SCREENSHOT MANAGEMENT
-
-### Automatic Capture
-
-java
+### `onTestFailure`
+```java
 @Override
 public void onTestFailure(ITestResult result) {
-    String screenshotPath = ScreenshotUtil.captureScreenshot(
-        WebDriverManager.getPage(), 
-        result.getMethod().getMethodName()
-    );
-    ScreenshotUtil.attachScreenshotToReport(screenshotPath);
+    extentTest.get().fail(result.getThrowable());
+    // Screenshot already attached by Hooks.java @After
+}
+```
+
+### Config keys used
+```properties
+extent.report.path=build/reports/extent/ExtentReport.html
+extent.report.title=SauceDemo Automation Report
+extent.report.name=SDD Automation Suite
+```
+
+### Gradle dependency
+```groovy
+testImplementation 'com.aventstack:extentreports:5.0.9'
+```
+No adapter library — `ExtentTestListener` is a hand-written `ITestListener`.
+
+---
+
+## 3. CUCUMBER REPORT (MASTERTHOUGHT)
+
+### How it works
+`CucumberRunner` writes a JSON report during the test run:
+```java
+plugin = { "pretty", "json:build/reports/cucumber/cucumber-report.json" }
+```
+After the `test` task completes, the Gradle task `generateCucumberReport` processes the JSON and generates a full HTML report.
+
+The built-in Cucumber `html:` plugin is **not used** — it generates JavaScript that triggers browser XSS security dialogs and produces inflated (~76 MB) HTML files.
+
+### Gradle task
+```groovy
+buildscript {
+    dependencies {
+        classpath('net.masterthought:cucumber-reporting:5.7.5') {
+            exclude group: 'com.fasterxml.jackson.core'
+        }
+        classpath 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    }
 }
 
+task generateCucumberReport {
+    doLast {
+        def jsonFile = file('build/reports/cucumber/cucumber-report.json')
+        if (!jsonFile.exists()) return
+        def outputDir = file('build/reports/cucumber/html')
+        outputDir.mkdirs()
+        def config = new net.masterthought.cucumber.Configuration(outputDir, 'SDD Automation Suite')
+        config.setBuildNumber('1')
+        new net.masterthought.cucumber.ReportBuilder([jsonFile.absolutePath], config)
+                .generateReports()
+    }
+}
 
-### Manual Capture
+test { finalizedBy 'generateCucumberReport' }
+```
 
-java
-// In test class
-ScreenshotUtil.captureScreenshot(page, "my-screenshot");
+### Screenshot embedding
+`Hooks.java @AfterStep` attaches step screenshots via `scenario.attach(byte[], "image/png", name)`. Masterthought saves these as external files in `build/reports/cucumber/html/cucumber-html-reports/embeddings/` — keeps individual HTML pages small while still showing all screenshots.
 
-// In step definition
-ExtentTestListener.getTest()
-    .addScreenCaptureFromPath(screenshotPath);
-
-
----
-
-## 17. REPORT TROUBLESHOOTING
-
-### Report Not Generated
-
-**Solution**: Check testng.xml includes listeners
-
-xml
-<listeners>
-    <listener class-name="org.example.listeners.ExtentTestListener"/>
-</listeners>
-
-
-### Screenshots Missing
-
-**Solution**: Verify config.properties has:
-
-
-screenshot.on.failure=true
-screenshot.path=build/reports/screenshots
-
-
-### Slow Report Loading
-
-**Solution**: Reduce screenshot frequency or size
+### Why Masterthought is in `buildscript` (not `testImplementation`)
+Masterthought is used by the Gradle build script itself (in `doLast`), not by test code. Using `testImplementation` would make it unavailable at Gradle script evaluation time. Jackson exclusion is needed because Masterthought pulls `jackson-core:2.17.0` which conflicts with the project's `jackson-databind:2.15.2`.
 
 ---
 
-## 18. BEST PRACTICES
+## 4. SCREENSHOT STRATEGY
 
-### DO:
-- Log important test steps
-- Attach screenshots to failed tests
-- Use test descriptions
-- Categorize tests with groups
-- Review reports regularly
-- Archive reports in CI/CD
-- Include system information
+### Classes involved
+- `ScreenshotUtil.java` — captures and saves PNG files, manages run/scenario/step folder structure
+- `Hooks.java` — calls `ScreenshotUtil`, attaches results to both reports
 
-### DON'T:
-- Log every single action (too verbose)
-- Capture screenshot for every action (slow)
-- Forget to flush reports (incomplete data)
-- Ignore report errors in CI/CD
-- Store uncompressed reports (storage)
+### Folder structure per run
+```
+build/reports/screenshots/
+└── 2026-04-24_14-30-00/          ← run timestamp folder (one per JVM)
+    └── Valid_login_standard_user/ ← scenario folder (sanitized name)
+        ├── step_01.png
+        ├── step_02.png
+        ├── step_03.png
+        └── Failed_Step_Valid_login....png   ← only on failure
+```
 
----
-
-## 19. REPORT RETENTION
-
-### Local Machine
-
-Keep last 5 test runs
-Archive older reports to dated folders
-
-
-### CI/CD
-
-Keep reports as artifacts
-Archive for 90 days
-Delete reports older than 90 days
-
+### Flow
+1. `Hooks @Before` → `ScreenshotUtil.initScenarioFolder(scenario.getName())`
+2. `Hooks @AfterStep` → `ScreenshotUtil.captureStepScreenshot(page)` → attach to Extent + Cucumber
+3. `Hooks @After` (if failed) → `ScreenshotUtil.captureFailureScreenshot(page, name)` → attach to both
+4. `Hooks @After` → `ScreenshotUtil.cleanupScenario()` (removes ThreadLocals)
 
 ---
 
-## 20. MONITORING AND ANALYSIS
+## 5. OPENING REPORTS
 
-### Track Over Time
-- Test pass rate trends
-- Execution time trends
-- Flaky test identification
-- Test failure patterns
-- Performance degradation
+```bash
+# Extent Report
+open build/reports/extent/ExtentReport.html
 
-### Tools for Analysis
-- ExtentReports Dashboard
-- Cucumber Report Portal (optional)
-- Custom analytics dashboard
+# Cucumber Masterthought Report
+open build/reports/cucumber/html/cucumber-html-reports/overview-features.html
+```
 
 ---
 
-**Status**: ✅ Reporting Specification - CORRECTED and SIMPLIFIED
+## 6. CI/CD
 
-All specifications now error-free and ready for implementation!
+GitHub Actions uploads the entire `build/reports/` directory as an artifact after each run (see `.github/workflows/ci.yml`). Reports are accessible from the Actions run page.
+
+---
+
+## 7. TROUBLESHOOTING
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Images broken in Extent report | Absolute path used in `createScreenCaptureFromPath` | Compute relative path from `REPORT_DIR` using `relativize()` |
+| Cucumber HTML won't open / XSS error | Built-in `html:` plugin generates unsafe JS | Use Masterthought; remove `html:` from `CucumberOptions.plugin` |
+| Cucumber HTML is 76 MB | Base64 screenshots inlined by `html:` plugin | Use Masterthought; embeddings are saved as external files |
+| `generateCucumberReport` fails with Jackson conflict | Masterthought pulls `jackson-core:2.17.0` | Exclude `com.fasterxml.jackson.core` from Masterthought classpath, re-add `jackson-databind:2.15.2` explicitly |
+| No screenshots in Cucumber report | `scenario.attach()` not called | `Hooks @AfterStep` and `@After` call `attachToCucumber()` |
+
+---
+
+**Status**: ✅ Reporting Specification — accurate as of 2026-04-24

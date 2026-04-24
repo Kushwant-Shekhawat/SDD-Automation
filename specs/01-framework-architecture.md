@@ -1,12 +1,13 @@
-# SDD-Automation Framework - Architecture Specification (CORRECTED)
+# SDD-Automation Framework - Architecture Specification
 
 ## 1. PROJECT OVERVIEW
 
 **Target Application**: SauceDemo (https://www.saucedemo.com)
 **Framework Name**: SDD-Automation
-**Technology Stack**: Java 11 + Gradle + Playwright + TestNG + ExtentReports + Cucumber
+**Technology Stack**: Java 11 + Gradle + Playwright 1.51.0 + TestNG 7.7.0 + ExtentReports 5.0.9 + Cucumber 7.14.0
 **Architecture Pattern**: Page Object Model (POM)
-**Execution Models**: Sequential, Parallel, Data-Driven, BDD
+**Test Strategy**: Cucumber BDD only — 69 scenarios across 11 feature files
+**Execution Models**: Parallel (4 threads), headless/headed, cross-browser
 
 ---
 
@@ -15,47 +16,47 @@
 ```
 SDD-Automation/
 ├── src/main/java/org/example/
-│   ├── base/
-│   │   ├── BasePage.java
-│   │   └── WebDriverManager.java
+│   ├── driver/
+│   │   └── WebDriverManager.java        # ThreadLocal Playwright lifecycle
 │   ├── pages/
+│   │   ├── BasePage.java
 │   │   ├── LoginPage.java
 │   │   ├── ProductsPage.java
 │   │   ├── ProductDetailsPage.java
 │   │   ├── CartPage.java
-│   │   └── CheckoutPage.java
+│   │   ├── CheckoutPage.java
+│   │   └── NavigationComponent.java
+│   ├── data/
+│   │   └── TestDataProvider.java
 │   └── utils/
 │       ├── ConfigReader.java
 │       ├── LoggerUtil.java
 │       ├── ScreenshotUtil.java
 │       ├── WaitUtil.java
-│       ├── TestDataProvider.java
+│       ├── VisualCompareUtil.java
 │       └── CustomExceptions.java
 │
 ├── src/test/java/org/example/
 │   ├── base/
 │   │   └── BaseTest.java
-│   ├── tests/
-│   │   ├── LoginTests.java
-│   │   ├── ProductsTests.java
-│   │   ├── ShoppingCartTests.java
-│   │   └── CheckoutTests.java
 │   ├── runners/
-│   │   └── CucumberRunner.java
-│   ├── stepdefinitions/
+│   │   └── CucumberRunner.java          # @DataProvider(parallel=true), 4 threads
+│   ├── stepdefs/                         # PicoContainer DI via SharedContext
+│   │   ├── SharedContext.java
+│   │   ├── Hooks.java
 │   │   ├── LoginSteps.java
-│   │   ├── ProductsSteps.java
-│   │   ├── ShoppingCartSteps.java
+│   │   ├── ProductSteps.java
+│   │   ├── CartSteps.java
 │   │   ├── CheckoutSteps.java
-│   │   └── Hooks.java
+│   │   ├── NavigationSteps.java
+│   │   └── VisualSteps.java
 │   └── listeners/
-│       └── ExtentTestListener.java
+│       └── ExtentTestListener.java      # Custom ITestListener
 │
 ├── src/test/resources/
 │   ├── config/
-│   │   ├── config.properties
-│   │   ├── config-local.properties
-│   │   └── config-ci.properties
+│   │   ├── config.properties            # Committed defaults
+│   │   └── config-local.properties      # Gitignored per-dev overrides
 │   ├── testdata/
 │   │   ├── login-data.csv
 │   │   ├── product-data.csv
@@ -65,84 +66,76 @@ SDD-Automation/
 │   ├── features/
 │   │   ├── login.feature
 │   │   ├── products.feature
-│   │   ├── shopping_cart.feature
-│   │   └── checkout.feature
+│   │   ├── cart.feature
+│   │   ├── checkout.feature
+│   │   ├── checkout_validation.feature
+│   │   ├── logout.feature
+│   │   ├── product_details.feature
+│   │   ├── sorting.feature
+│   │   ├── multi_item_cart.feature
+│   │   ├── negative_flows.feature
+│   │   └── visual_regression.feature    # @visual tag — excluded from CI
+│   ├── visual-baselines/                # Baseline PNGs for visual regression
 │   └── testng/
-│       ├── testng.xml
-│       ├── testng-parallel.xml
-│       └── testng-smoke.xml
+│       └── testng.xml                   # data-provider-thread-count="4"
 │
+├── .github/workflows/ci.yml             # Chromium + cross-browser matrix
+├── CLAUDE.md
 ├── build.gradle
 ├── settings.gradle
 ├── gradle.properties
-├── .gitignore
-└── README.md
+└── .gitignore
 ```
 
 ---
 
 ## 3. BUILD CONFIGURATION
 
-### Gradle Dependencies (Key additions for Cucumber):
+### Actual dependency versions in use:
 
 ```
-Java 11 compatible libraries:
-- Playwright: 1.40.0
-- TestNG: 7.7.0
-- ExtentReports: 5.0.9
-- Cucumber: 7.14.0
-- SLF4J + Logback for logging
-- AssertJ for assertions
-- Jackson for JSON
-- Apache Commons CSV
-- Faker for test data
+- Playwright:           1.51.0
+- TestNG:               7.7.0
+- ExtentReports:        5.0.9  (custom ITestListener — no adapter)
+- Cucumber:             7.14.0
+- cucumber-picocontainer: 7.14.0
+- SLF4J + Logback:      1.7.36 / 1.2.11
+- AssertJ:              3.24.1
+- Jackson:              2.15.2
+- Apache Commons CSV:   1.10.0  (groupId: org.apache.commons)
+- JavaFaker:            1.0.2
+- Awaitility:           4.1.1
+- Masterthought cucumber-reporting: 5.7.5 (buildscript classpath only)
 ```
 
-Add to build.gradle:
+### build.gradle summary:
 
 ```gradle
-plugins {
-    id 'java'
-}
-
-group = 'org.example'
-version = '1.0-SNAPSHOT'
-
-sourceCompatibility = '11'
-targetCompatibility = '11'
-
-repositories {
-    mavenCentral()
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath('net.masterthought:cucumber-reporting:5.7.5') {
+            exclude group: 'com.fasterxml.jackson.core'
+        }
+        classpath 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    }
 }
 
 dependencies {
-    // Playwright (used in src/main — BasePage, WebDriverManager)
-    implementation 'com.microsoft.playwright:playwright:1.40.0'
-
-    // Logging (used in src/main — LoggerUtil)
+    implementation 'com.microsoft.playwright:playwright:1.51.0'
     implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation 'ch.qos.logback:logback-classic:1.2.11'
-
-    // Data utilities (used in src/main — TestDataProvider, utils)
-    implementation 'commons-csv:commons-csv:1.10.0'
+    implementation 'org.apache.commons:commons-csv:1.10.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
 
-    // Test dependencies
     testImplementation 'org.testng:testng:7.7.0'
     testImplementation 'com.aventstack:extentreports:5.0.9'
-    testImplementation 'com.aventstack:extentreports-testng-adapter:1.10.10'
     testImplementation 'io.cucumber:cucumber-java:7.14.0'
     testImplementation 'io.cucumber:cucumber-testng:7.14.0'
     testImplementation 'io.cucumber:cucumber-picocontainer:7.14.0'
     testImplementation 'org.assertj:assertj-core:3.24.1'
     testImplementation 'com.github.javafaker:javafaker:1.0.2'
     testImplementation 'org.awaitility:awaitility:4.1.1'
-}
-
-test {
-    useTestNG {
-        suites 'src/test/resources/testng/testng.xml'
-    }
 }
 ```
 
@@ -151,393 +144,436 @@ test {
 ## 4. CORE CLASSES
 
 ### WebDriverManager.java
-- Singleton pattern for thread-safe driver management
-- Playwright browser initialization
-- Support for headless/headed modes
-- Screenshot and video recording
-- ThreadLocal for parallel execution
-- Methods: launchBrowser(), getPage(), closeBrowser(), takeScreenshot()
+- Package: `org.example.driver`
+- Static ThreadLocal lifecycle — no singleton instance
+- `initBrowser()` — launches Playwright + browser + context + page, stores all in ThreadLocals
+- `getPage()` — returns the current thread's Page
+- `closeBrowser()` — closes page, context, browser, playwright; removes all ThreadLocals
+- Supports chromium / firefox / webkit via `browser.type` config key
+- Headless mode and `browser.slow.mo` controlled via ConfigReader
 
 ### BasePage.java
+- Package: `org.example.pages`
 - Abstract base class for all page objects
-- Protected methods: click(), fill(), selectDropdown(), getText()
-- Wait methods: waitForElement(), waitForElementVisible(), waitForElementClickable()
-- Navigation: navigate(), getCurrentUrl()
-- All using Playwright Locator and Page objects
+- Constructor: `BasePage(Page page)` — also reads `browser.timeout` via ConfigReader
+- Protected methods: `click(Locator)`, `fill(Locator, String)`, `getText(Locator)`, `isVisible(Locator)`, `isVisible(Locator, int timeoutMs)`
+- Navigation: `navigateTo(String path)` — prepends base URL from ConfigReader
+- Page load: `waitForPageLoad()` — calls `page.waitForLoadState()`
+- All element interactions delegate to WaitUtil for visibility before acting
 
 ### BaseTest.java
-- TestNG base class
-- @BeforeMethod: Initialize WebDriverManager
-- @AfterMethod: Cleanup and screenshot on failure
-- ExtentReports integration
-- Retry mechanism support
+- Package: `org.example.base`
+- TestNG lifecycle class — used only by CucumberRunner (no standalone TestNG test classes)
+- `@BeforeMethod setUp(Method)` — calls `WebDriverManager.initBrowser()`, sets `page` field
+- `@AfterMethod tearDown(ITestResult)` — captures failure screenshot, calls `WebDriverManager.closeBrowser()`
+- `@BeforeTest setBrowser(@Optional String)` — sets `browser.type` system property for cross-browser runs
 
 ---
 
 ## 5. PAGE OBJECTS
 
+All in package `org.example.pages`. Full locator and method specifications are in `02-page-object-model.md`.
+
 ### LoginPage.java
-Locators: username input, password input, login button, error message, menu, logout
-Methods: login(), enterUsername(), enterPassword(), clickLoginButton(), getErrorMessage(), logout()
+Key locators: `[data-test="username"]`, `[data-test="password"]`, `[id="login-button"]`, `[data-test="error"]`
+Key methods: `login(username, password)`, `enterUsername()`, `enterPassword()`, `clickLoginButton()`, `getErrorMessage()`, `isLoginButtonVisible()`, `isLoginPageDisplayed()`
 
 ### ProductsPage.java
-Locators: product items, add to cart buttons, cart badge, sort dropdown, cart link
-Methods: addProductToCart(), getProductCount(), sortProducts(), getProductPrice(), goToCart()
+Key locators: `.inventory_item`, `.product_sort_container`, `span.shopping_cart_badge`, `a.shopping_cart_link`
+Key methods: `addProductToCart(productName)`, `removeProductFromCart(productName)`, `getProductCount()`, `sortProducts(sortOption)`, `goToCart()`, `getCartCount()`, `getFirstProductName()`, `arePricesInAscendingOrder()`
 
 ### ProductDetailsPage.java
-Locators: product name, price, description, add to cart button, back button
-Methods: getProductName(), getProductPrice(), addToCart(), backToProducts()
+Key locators: `.inventory_details_name`, `.inventory_details_price`, `[data-test*="add-to-cart"]`, `[data-test="back-to-products"]`
+Key methods: `getProductName()`, `getProductPrice()`, `addToCart()`, `removeFromCart()`, `backToProducts()`, `isAddToCartButtonVisible()`
 
 ### CartPage.java
-Locators: cart items, remove buttons, cart total, checkout button
-Methods: getCartItems(), removeItem(), getCartTotal(), proceedToCheckout()
+Key locators: `div.cart_item`, `[data-test="checkout"]`, `[data-test="continue-shopping"]`
+Key methods: `getCartItems()`, `removeItem(itemName)`, `getCartItemCount()`, `isCartEmpty()`, `proceedToCheckout()`, `continueShoppingButton()`
 
 ### CheckoutPage.java
-Locators: form fields (firstName, lastName, postalCode), continue button, finish button, thank you message
-Methods: enterFirstName(), enterLastName(), enterPostalCode(), clickFinishButton(), isThankYouMessageDisplayed()
+Covers three pages: step-one, step-two, checkout-complete
+Key methods: `enterFirstName()`, `enterLastName()`, `enterPostalCode()`, `clickContinueButton()`, `cancelCheckout()`, `isErrorMessageDisplayed()`, `getErrorMessage()`, `clickFinishButton()`, `isThankYouMessageDisplayed()`, `getOrderTotal()`, `dismissError()`
+
+### NavigationComponent.java
+Key locators: `#react-burger-menu-btn`, `.bm-menu-wrap`, `#logout_sidebar_link`, `#reset_sidebar_link`
+Key methods: `openMenu()`, `closeMenu()`, `logout()`, `resetAppState()`, `isMenuVisible()`
 
 ---
 
 ## 6. UTILITY CLASSES
 
+All in package `org.example.utils`.
+
 ### ConfigReader.java
-Reads config.properties, config-local.properties, config-ci.properties
-Methods: getConfig(), getConfigBoolean(), getConfigInt(), getBaseUrl(), isHeadless(), etc.
+- Loads `config.properties` first, then env-specific override (`config/config-local.properties` or `config/config-ci.properties` based on `ENV` system property or env var)
+- System properties override all file values
+- Methods: `getConfig(key)`, `getConfig(key, default)`, `getBoolean(key)`, `getBoolean(key, default)`, `getInt(key)`, `getInt(key, default)`, `getBaseUrl()`, `getBrowserType()`, `isHeadless()`, `getTimeout()`
 
 ### LoggerUtil.java
-Static logging methods: info(), warning(), error(), debug()
-Uses SLF4J + Logback
+- Static wrapper over SLF4J Logger
+- Methods: `info(msg)`, `warn(msg)`, `error(msg)`, `error(msg, throwable)`, `debug(msg)`
 
 ### ScreenshotUtil.java
-Captures screenshots on demand
-Saves to build/reports/screenshots/
-Attaches to ExtentReports
+- Run-level folder: `build/reports/screenshots/<timestamp>/` (created once per JVM run, synchronized)
+- Scenario-level sub-folder: one per scenario, named from sanitized scenario name
+- `initScenarioFolder(scenarioName)` — creates folder, resets step counter and last-failure path
+- `captureStepScreenshot(page)` — saves `step_NN.png`, increments counter, returns absolute path
+- `captureFailureScreenshot(page, scenarioName)` — saves `Failed_Step_<name>.png`
+- `cleanupScenario()` — removes ThreadLocals (called in `@After` Hooks)
+- All methods are ThreadLocal-safe for parallel execution
 
 ### WaitUtil.java
-Explicit wait methods using Playwright
-waitForSeconds(), waitForElementVisible(), waitForElementClickable()
+- Playwright-native explicit waits; no `Thread.sleep()`
+- `waitForVisible(locator)` — waits up to configured timeout for VISIBLE state
+- `waitForVisible(locator, int timeoutMs)` — overload with custom timeout
 
 ### TestDataProvider.java
-Reads CSV files from src/test/resources/testdata/
-Methods: getLoginData(), getProductData(), getCheckoutData()
-Returns Object[][] for TestNG @DataProvider
+- Reads CSV files from `src/test/resources/testdata/` via Apache Commons CSV
+- Returns parsed rows for use in Cucumber step definitions
+
+### VisualCompareUtil.java
+- `compareScreenshot(page, baselineName)` — takes screenshot, compares pixel-by-pixel against baseline PNG
+- Baseline directory: `src/test/resources/visual-baselines/`
+- Diff output directory: `build/reports/visual/diffs/`
+- Threshold: **3%** pixel difference — if no baseline exists, captures and saves it automatically
+- Used exclusively by `VisualSteps.java` (tagged `@visual`)
 
 ### CustomExceptions.java
-FrameworkException, ElementNotFoundException, TimeoutException, ConfigurationException
+- Inner static classes: `FrameworkException`, `ElementNotFoundException`, `TimeoutException`, `ConfigurationException`
 
 ---
 
 ## 7. CONFIGURATION FILES
 
-### config.properties (Default)
+Config files live in `src/test/resources/config/`. The root `config.properties` (no subdirectory) is the primary file also loaded from classpath root.
+
+### config.properties (Primary defaults)
 ```
 base.url=https://www.saucedemo.com
 browser.type=chromium
+browser.headless=false
 browser.timeout=10000
-browser.headless=false
-log.level=INFO
+browser.slow.mo=0
+user.standard=standard_user
+user.locked=locked_out_user
+user.problem=problem_user
+user.performance=performance_glitch_user
+user.password=secret_sauce
 screenshot.on.failure=true
-extent.report.path=build/reports/extentreports/index.html
+screenshot.path=build/reports/screenshots
+extent.report.path=build/reports/extent/ExtentReport.html
+extent.report.title=SauceDemo Automation Report
+extent.report.name=SDD Automation Suite
+cucumber.report.path=build/reports/cucumber
+retry.count=1
 ```
 
-### config-local.properties (Local Development)
-```
-browser.headless=false
-log.level=DEBUG
-parallel.thread.count=1
-```
-
-### config-ci.properties (CI/CD)
+### config/config-local.properties (Local override)
 ```
 browser.headless=true
-log.level=INFO
-parallel.thread.count=4
+browser.timeout=10000
+browser.slow.mo=0
+```
+
+### config/config-ci.properties (CI override — activated by ENV=ci)
+```
+browser.headless=true
+browser.timeout=15000
+screenshot.on.failure=true
 ```
 
 ---
 
 ## 8. TEST DATA (CSV FILES)
 
-### login-data.csv
-Headers: username, password, expectedResult, description
-8 rows: standard_user, locked_user, invalid_user, empty fields, etc.
+All files in `src/test/resources/testdata/`.
 
-### product-data.csv
-Headers: productId, productName, price, category, description, availability
-6 rows with actual SauceDemo products
+### login_valid.csv
+Headers: `username, password, expectedResult`
+2 rows: standard_user, performance_glitch_user (both succeed)
 
-### cart-data.csv
-Headers: testCase, productNames, quantities, expectedCount, expectedTotal, operation
-6 rows with different cart scenarios
+### login_invalid.csv
+Headers: `username, password, expectedError`
+5 rows: locked_out_user, wrong password, invalid user, empty username, empty password
 
-### checkout-data.csv
-Headers: firstName, lastName, postalCode, expectedResult, description, testUser
-6 rows with valid checkout data
+### products.csv
+Headers: `productName, price, description`
+6 rows — all 6 SauceDemo products with actual prices
 
-### invalid-checkout-data.csv
-Headers: firstName, lastName, postalCode, expectedError, description
-Rows for negative testing (empty fields)
+### checkout.csv
+Headers: `firstName, lastName, postalCode`
+3 rows with valid checkout data
+
+### checkout_invalid.csv
+Headers: `firstName, lastName, postalCode, expectedError`
+3 rows: missing first name, missing last name, missing postal code
 
 ---
 
-## 9. TEST CLASSES (TestNG)
+## 9. TEST EXECUTION STRATEGY
 
-### LoginTests.java
-7-8 test methods covering login scenarios
-Data-driven using @DataProvider
-Groups: smoke, regression
+This framework is **Cucumber-only**. There are no standalone TestNG test classes (no LoginTests, ProductsTests, etc.). All 69 scenarios run through `CucumberRunner`, which extends `AbstractTestNGCucumberTests`.
 
-### ProductsTests.java
-7 test methods for browsing, sorting, adding products
-Groups: smoke, regression
-
-### ShoppingCartTests.java
-6 test methods for cart operations
-Groups: regression
-
-### CheckoutTests.java
-5 test methods for checkout flow
-Groups: smoke, regression
-
-**Total**: 25 TestNG tests + 20+ Cucumber BDD scenarios
+Parallelism is at the Cucumber scenario level via `@DataProvider(parallel = true)` with `data-provider-thread-count="4"` in `testng.xml`. Each thread gets its own Playwright browser instance via ThreadLocal.
 
 ---
 
 ## 10. CUCUMBER BDD (Feature Files)
 
-### login.feature
-Scenarios: Valid login, invalid login, locked user, logout
+All 11 feature files in `src/test/resources/features/`. Total: **69 scenarios**.
 
-### products.feature
-Scenarios: Browse products, sort products, add to cart, view details
-
-### shopping_cart.feature
-Scenarios: View cart, remove items, continue shopping, checkout
-
-### checkout.feature
-Scenarios: Complete checkout, form validation, cancel checkout
+| Feature File | Scenarios | Tags |
+|---|---|---|
+| `login.feature` | 7 | @smoke, @regression |
+| `products.feature` | 6 | @smoke, @regression |
+| `cart.feature` | 4 | @regression |
+| `checkout.feature` | 6 | @smoke, @regression |
+| `checkout_validation.feature` | 9 | @regression |
+| `logout.feature` | 4 | @regression |
+| `product_details.feature` | 5 | @regression |
+| `sorting.feature` | 6 | @regression |
+| `multi_item_cart.feature` | 6 | @regression |
+| `negative_flows.feature` | 5 | @regression |
+| `visual_regression.feature` | 6 | @visual (excluded from CI) |
 
 ---
 
 ## 11. STEP DEFINITIONS
 
-### LoginSteps.java
-@Given, @When, @Then methods for login scenarios
-Uses LoginPage page object
+All in package `org.example.stepdefs`. Dependency injection via PicoContainer — `SharedContext` is injected into each step class.
 
-### ProductsSteps.java
-Step definitions for product browsing
-Uses ProductsPage page object
-
-### ShoppingCartSteps.java
-Step definitions for cart operations
-Uses CartPage page object
-
-### CheckoutSteps.java
-Step definitions for checkout flow
-Uses CheckoutPage page object
+### SharedContext.java
+- PicoContainer-managed context shared across all step classes in a scenario
+- Instantiates `WebDriverManager.initBrowser()` in constructor; navigates to base URL
+- Exposes: `page`, `loginPage`, `productsPage`, `productDetailsPage`, `cartPage`, `checkoutPage`, `navigationComponent`
+- `tearDown()` — closes browser
 
 ### Hooks.java
-@Before: Launch browser
-@After: Close browser, capture screenshot on failure
+- `@Before` — calls `ScreenshotUtil.initScenarioFolder()`
+- `@AfterStep` — captures step screenshot, attaches to Extent report and Cucumber JSON
+- `@After` — captures failure screenshot if scenario failed, attaches to both reports, calls `ScreenshotUtil.cleanupScenario()` and `ctx.tearDown()`
+
+### LoginSteps.java
+Login, locked user, invalid login, empty credentials scenarios
+
+### ProductSteps.java
+Product browsing, add to cart, cart badge count scenarios
+
+### CartSteps.java
+Cart view, remove items, continue shopping, multi-item cart scenarios
+
+### CheckoutSteps.java
+Checkout flow (step 1, step 2, complete), order confirmation scenarios
+
+### NavigationSteps.java
+Menu open/close, logout, reset app state, back-navigation scenarios
+
+### VisualSteps.java
+Visual comparison steps using `VisualCompareUtil` — used only with `@visual` tag
 
 ---
 
 ## 12. TEST RUNNERS
 
 ### CucumberRunner.java
-Runs all .feature files from src/test/resources/features/
-Generates HTML, JSON, JUnit reports
-Uses PicoContainer for dependency injection
+```java
+@CucumberOptions(
+    features = "src/test/resources/features",
+    glue = "org.example.stepdefs",
+    plugin = {
+        "pretty",
+        "json:build/reports/cucumber/cucumber-report.json"
+    },
+    monochrome = true
+)
+public class CucumberRunner extends AbstractTestNGCucumberTests {
+    @Override
+    @DataProvider(parallel = true)
+    public Object[][] scenarios() { return super.scenarios(); }
+}
+```
+- Outputs JSON to `build/reports/cucumber/cucumber-report.json`
+- Masterthought generates HTML from that JSON via Gradle task `generateCucumberReport`
+- No built-in `html:` plugin (causes XSS errors and inflated file size)
 
 ---
 
 ## 13. TESTNG CONFIGURATION
 
-### testng.xml (Sequential)
-xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-current.dtd">
-<suite name="SDD-Automation Suite" parallel="none" thread-count="1">
+Five XML files in `src/test/resources/testng/`:
 
+### testng.xml (Default — all Cucumber scenarios, parallel)
+```xml
+<suite name="SDD Automation Suite" parallel="none" data-provider-thread-count="4">
   <listeners>
     <listener class-name="org.example.listeners.ExtentTestListener"/>
   </listeners>
-
-  <test name="Cucumber Tests">
+  <test name="Cucumber BDD Suite">
     <classes>
       <class name="org.example.runners.CucumberRunner"/>
     </classes>
   </test>
-  <test name="Unit Tests">
-    <classes>
-      <class name="org.example.tests.LoginTests"/>
-      <class name="org.example.tests.ProductsTests"/>
-      <class name="org.example.tests.ShoppingCartTests"/>
-      <class name="org.example.tests.CheckoutTests"/>
-    </classes>
-  </test>
 </suite>
+```
 
-### testng-parallel.xml (Parallel)
-Thread-count=4 for parallel execution
+### testng-cucumber.xml
+Identical to testng.xml — explicit alias for Cucumber-only runs.
 
-### testng-smoke.xml (Smoke Only)
-Includes only @smoke tagged tests
+### testng-smoke.xml
+Runs `CucumberRunner` with `-Dcucumber.filter.tags="@smoke"` applied at command line.
+(Also contains a legacy class list referencing `org.example.tests.*` — those classes no longer exist.)
+
+### testng-cross-browser.xml
+Runs `CucumberRunner` with `data-provider-thread-count="4"` for Firefox/WebKit runs.
+Browser set via `-Dbrowser.type=firefox|webkit` system property.
+Note: Exclude `@visual` tag for cross-browser runs — baselines are Chromium-only.
+
+### testng-visual.xml
+Runs visual regression only — references `org.example.tests.VisualRegressionTest` (legacy, not used). Use `CucumberRunner` with `-Dcucumber.filter.tags="@visual"` instead.
 
 ---
 
 ## 14. EXECUTION MODELS
 
-### Sequential Execution
-gradle test
-Expected: ~5 minutes for all tests
-
-### Parallel Execution
+### Run all scenarios (default)
 ```bash
-./gradlew test -DsuiteFile=src/test/resources/testng/testng-parallel.xml
+./gradlew clean test
 ```
-Expected: ~2 minutes for all tests
+Uses `testng.xml` with `data-provider-thread-count="4"`. Expected: ~3–4 minutes.
 
-### Smoke Tests Only
+### Smoke scenarios only
 ```bash
-./gradlew test -DsuiteFile=src/test/resources/testng/testng-smoke.xml
+./gradlew clean test -Dcucumber.filter.tags="@smoke"
 ```
-Expected: ~45 seconds
+Expected: ~45–60 seconds.
 
-### Cucumber Features Only
+### Specific browser
 ```bash
-./gradlew test -DsuiteFile=src/test/resources/testng/testng.xml -Dcucumber.filter.tags="@smoke"
+./gradlew clean test -Dbrowser.type=firefox
+./gradlew clean test -Dbrowser.type=webkit
 ```
-Expected: ~3 minutes
+
+### CI / headless
+```bash
+ENV=ci ./gradlew clean test
+```
+Activates `config-ci.properties` (headless=true, timeout=15000).
+
+### Visual regression only (local)
+```bash
+./gradlew clean test -Dcucumber.filter.tags="@visual"
+```
+
+### Exclude visual from CI
+```bash
+./gradlew clean test -Dcucumber.filter.tags="not @visual"
+```
 
 ---
 
 ## 15. REPORTING
 
-### ExtentReports
-- HTML dashboard: build/reports/extentreports/index.html
-- Automatic screenshot attachment on failure
-- Test categorization by groups
-- Execution timeline
-- System information
-- Pass/Fail/Skip metrics
+### ExtentReports (primary HTML dashboard)
+- Output: `build/reports/extent/ExtentReport.html`
+- Generated by `ExtentTestListener` (custom `ITestListener`) — no adapter library
+- Screenshots attached as relative paths from the report's directory — resolves to `../screenshots/<run>/<scenario>/step_NN.png`
+- Step screenshots attached via `@AfterStep`; failure screenshot attached via `@After`
 
-### Cucumber Reports
-- HTML report: build/reports/cucumber/cucumber-report.html
-- JSON format for integration
-- JUnit XML for CI/CD
+### Cucumber Report (Masterthought)
+- JSON source: `build/reports/cucumber/cucumber-report.json`
+- HTML output: `build/reports/cucumber/html/cucumber-html-reports/overview-features.html`
+- Generated by Gradle task `generateCucumberReport` (runs automatically after `test` via `finalizedBy`)
+- Masterthought saves screenshot embeddings as external files under `embeddings/` — keeps HTML files small
+- Masterthought is in `buildscript { classpath }` only, not `testImplementation`
 
 ---
 
 ## 16. CI/CD INTEGRATION
 
-### GitHub Actions Compatible
+### GitHub Actions
+Workflow: `.github/workflows/ci.yml`
+- Runs on push/PR to main
+- Sets `ENV=ci` to activate CI config
+- Excludes `@visual` scenarios (`-Dcucumber.filter.tags="not @visual"`)
+- Uploads `build/reports/` as artifact
+
+### Run command for CI
 ```bash
-gradle clean test
+ENV=ci ./gradlew clean test -Dcucumber.filter.tags="not @visual"
 ```
 
-### Jenkins Compatible
-Uses JUnit XML and HTML reports
-
-### Environment Variables
-CI=true triggers config-ci.properties
-Parallel execution enabled automatically
+### Install Playwright browsers (required first run in CI)
+```bash
+./gradlew installPlaywright
+```
 
 ---
 
 ## 17. QUALITY STANDARDS
 
-- Code coverage: 80% minimum
-- Flaky test rate: <5% (target <2%)
-- Execution time: <5 minutes sequential, <2 minutes parallel
-- All code: JavaDoc comments
-- Checkstyle: Google style guide
-- No hardcoded values: All via ConfigReader
+- Flaky test rate: target <2%
+- No `Thread.sleep()` anywhere — use WaitUtil or Playwright's built-in waits
+- No hardcoded credentials or URLs — all via ConfigReader
+- Screenshots on every step (Extent) and on failure (Cucumber)
+- Visual regression threshold: 3% pixel difference
 
 ---
 
-## 18. COMBINED STRATEGY
+## 18. FRAMEWORK STRATEGY
 
-**Your Framework Has Two Test Types**:
+This is a **Cucumber BDD-only** framework. All 69 test scenarios are expressed as Gherkin feature files and executed through `CucumberRunner`. The BDD approach makes tests readable by non-technical stakeholders while Page Objects keep locators maintainable.
 
-1. **Cucumber BDD Tests** (Stakeholder-facing)
-   - Feature files in plain English
-   - Business-readable scenarios
-   - 20+ scenarios across 4 features
-   - Natural language test specifications
-
-2. **TestNG Unit Tests** (Technical testing)
-   - Data-driven tests
-   - Utility function testing
-   - Advanced assertions
-   - 25 tests total
-
-**Shared Resources**:
-- Same Page Objects for both
-- Same Base classes
-- Same Configuration
-- Same Reporting
-- Same CI/CD pipeline
+**Component responsibilities:**
+- **Feature files** — define behaviour in plain English
+- **Step definitions** — bridge Gherkin to Page Object calls
+- **SharedContext** — PicoContainer DI container; one browser per scenario
+- **Page Objects** — encapsulate all locators and interactions
+- **Hooks** — cross-cutting concerns (screenshots, browser lifecycle)
+- **Listeners** — Extent report population
 
 ---
 
 ## 19. QUICK START COMMANDS
 
 ```bash
-# Navigate to project
-cd /Users/kushwantsinghshekhawat/SDD-Automation
+# Install Playwright browsers (once)
+./gradlew installPlaywright
 
-# Start Claude Code
-claude --here
+# Run all tests
+./gradlew clean test
 
-# In Claude Code terminal:
-> Read @specs/01-framework-architecture.md and create build.gradle with all dependencies including Cucumber
+# Run smoke tests only
+./gradlew clean test -Dcucumber.filter.tags="@smoke"
 
-> Create WebDriverManager.java, BasePage.java, BaseTest.java
+# Run headless (CI mode)
+ENV=ci ./gradlew clean test
 
-> Create all 5 page objects: LoginPage, ProductsPage, ProductDetailsPage, CartPage, CheckoutPage
+# Run on Firefox
+./gradlew clean test -Dbrowser.type=firefox
 
-> Create 6 utility classes: ConfigReader, LoggerUtil, ScreenshotUtil, WaitUtil, TestDataProvider, CustomExceptions
+# Run visual regression (local only)
+./gradlew clean test -Dcucumber.filter.tags="@visual"
 
-> Create 4 feature files: login.feature, products.feature, shopping_cart.feature, checkout.feature
+# Open Extent report
+open build/reports/extent/ExtentReport.html
 
-> Create 5 step definition classes: LoginSteps, ProductsSteps, ShoppingCartSteps, CheckoutSteps, Hooks
-
-> Create CucumberRunner.java
-
-> Create 4 TestNG test classes: LoginTests, ProductsTests, ShoppingCartTests, CheckoutTests with all 25 tests
-
-> Create ExtentTestListener.java for reporting
-
-> Create 3 TestNG XML files: testng.xml, testng-parallel.xml, testng-smoke.xml
-
-> Create 3 config files: config.properties, config-local.properties, config-ci.properties
-
-> Create 5 CSV files: login-data.csv, product-data.csv, cart-data.csv, checkout-data.csv, invalid-checkout-data.csv
-
-> Run: gradle clean build
-
-> Run: gradle test
+# Open Cucumber Masterthought report
+open build/reports/cucumber/html/cucumber-html-reports/overview-features.html
 ```
 
 ---
 
 ## 20. SUCCESS METRICS
 
-After generation:
-- 40+ Java files created
-- 4 Feature files created
-- 5 CSV data files created
-- 3 Config files created
-- 3 TestNG XML files created
-- Gradle build successful
-- All 25 TestNG tests passing
-- All 20+ Cucumber scenarios passing
-- ExtentReports generated
-- Cucumber HTML reports generated
-- 100% code generated from specifications
+Current state of the framework:
+- **27 Java files** across main and test source trees
+- **11 feature files**, **69 Cucumber scenarios**
+- **5 CSV test data files**
+- **3 config property files** (config.properties + 2 environment overrides)
+- **5 TestNG XML files** for different execution modes
+- **2 HTML reports** per run: Extent (step-by-step with screenshots) + Masterthought Cucumber
+- All scenarios executable locally and in GitHub Actions CI
 
 ---
 
-**Status**: ✅ Framework Architecture Specification - CORRECTED and SIMPLIFIED
+**Status**: ✅ Framework Architecture Specification - ACCURATE as of 2026-04-24

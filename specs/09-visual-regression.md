@@ -16,7 +16,7 @@ Playwright's built-in `page.screenshot()` is used; diff images are saved to
 | **Baseline capture** | First run saves PNG baselines to `src/test/resources/visual-baselines/` |
 | **Regression run** | Subsequent runs compare against baselines |
 | **Diff output** | Diff images saved to `build/reports/visual/diffs/` |
-| **Threshold** | Up to 1% pixel difference is acceptable (anti-aliasing, font rendering) |
+| **Threshold** | Up to **3%** pixel difference is acceptable (anti-aliasing, font rendering, parallel headless variance) |
 
 ---
 
@@ -29,7 +29,6 @@ Playwright's built-in `page.screenshot()` is used; diff images are saved to
 | Product details | Sauce Labs Backpack | `product_details_backpack.png` |
 | Cart page | One item in cart | `cart_one_item.png` |
 | Checkout step one | Empty form | `checkout_step1.png` |
-| Checkout step two | Order overview | `checkout_step2.png` |
 | Order confirmation | Complete | `checkout_complete.png` |
 
 ---
@@ -38,12 +37,12 @@ Playwright's built-in `page.screenshot()` is used; diff images are saved to
 
 File: `src/main/java/org/example/utils/VisualCompareUtil.java`
 
-java
+```java
 public class VisualCompareUtil {
 
     private static final String BASELINE_DIR = "src/test/resources/visual-baselines/";
     private static final String DIFF_DIR     = "build/reports/visual/diffs/";
-    private static final double THRESHOLD    = 0.01; // 1%
+    private static final double THRESHOLD    = 0.03; // 3%
 
     public static boolean compareScreenshot(Page page, String baselineName) {
         new File(DIFF_DIR).mkdirs();
@@ -155,23 +154,16 @@ public class VisualCompareUtil {
 
 ---
 
-## 6. TEST CLASS
+## 6. HOW VISUAL TESTS RUN
 
-File: `src/test/java/org/example/tests/VisualRegressionTest.java`
+Visual regression runs through Cucumber, not a standalone TestNG class. All visual scenarios are in `src/test/resources/features/visual_regression.feature` and tagged `@visual`. They are executed via `VisualSteps.java` which calls `VisualCompareUtil.compareScreenshot()`.
 
-java
-@Test(description = "Login page visual regression")
-public void testLoginPageVisual() {
-    assertThat(VisualCompareUtil.compareScreenshot(page, "login_page.png")).isTrue();
-}
+```bash
+# Run visual tests (local only)
+./gradlew clean test -Dcucumber.filter.tags="@visual"
+```
 
-@Test(description = "Products page visual regression")
-public void testProductsPageVisual() {
-    LoginPage loginPage = new LoginPage(page);
-    loginPage.login("standard_user", "secret_sauce");
-    assertThat(VisualCompareUtil.compareScreenshot(page, "products_page.png")).isTrue();
-}
-
+Visual tests are excluded from CI because baselines are Chromium-specific and are not committed for dynamic environments.
 
 ---
 
@@ -179,9 +171,9 @@ public void testProductsPageVisual() {
 
 To re-capture all baselines (e.g. after intentional UI change):
 
-bash
-rm -rf src/test/resources/visual-baselines/
-./gradlew test -DsuiteFile=src/test/resources/testng/testng-visual.xml
-
+```bash
+rm src/test/resources/visual-baselines/*.png
+./gradlew clean test -Dcucumber.filter.tags="@visual"
+```
 
 The first run auto-saves baselines; subsequent runs compare against them.

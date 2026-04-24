@@ -54,77 +54,63 @@ No code changes required — WebDriverManager already implements the switch.
 
 File: `src/test/resources/testng/testng-cross-browser.xml`
 
-xml
+The suite runs `CucumberRunner` — browser is passed via `-Dbrowser.type` at the command line, not as an XML parameter.
+
+```xml
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Cross-Browser Suite" parallel="none" verbose="1">
+<suite name="Cross-Browser Suite" parallel="none" verbose="1" data-provider-thread-count="4">
 
     <listeners>
         <listener class-name="org.example.listeners.ExtentTestListener"/>
     </listeners>
 
-    <!-- Chromium -->
-    <test name="Chromium - Login Tests">
-        <parameter name="browser.type" value="chromium"/>
+    <!--
+        Browser is set via -Dbrowser.type=firefox|webkit system property.
+        Visual regression excluded — baselines are Chromium-only.
+        Pass: -Dcucumber.filter.tags="not @visual"
+    -->
+    <test name="Cross-Browser - Core Scenarios">
         <classes>
-            <class name="org.example.tests.LoginTest"/>
-        </classes>
-    </test>
-
-    <!-- Firefox -->
-    <test name="Firefox - Login Tests">
-        <parameter name="browser.type" value="firefox"/>
-        <classes>
-            <class name="org.example.tests.LoginTest"/>
-        </classes>
-    </test>
-
-    <!-- WebKit -->
-    <test name="WebKit - Login Tests">
-        <parameter name="browser.type" value="webkit"/>
-        <classes>
-            <class name="org.example.tests.LoginTest"/>
+            <class name="org.example.runners.CucumberRunner"/>
         </classes>
     </test>
 
 </suite>
+```
 
-
-### BaseTest update for TestNG parameters
-
-Add `@Parameters` support to `BaseTest.setUp()`:
-
-java
-@Parameters("browser.type")
-@BeforeMethod
-public void setUp(@Optional String browser, Method method) {
-    if (browser != null) {
-        System.setProperty("browser.type", browser);
-    }
-    // existing setUp logic
+`BaseTest` already supports browser overrides via `@BeforeTest`:
+```java
+@Parameters("browser")
+@BeforeTest
+public void setBrowser(@Optional("chromium") String browser) {
+    System.setProperty("browser.type", browser);
 }
+```
 
 
 ---
 
 ## 5. TEST SCENARIOS
 
-### CB-001: Login works on Firefox
-**Priority**: P1 — run LoginTest on Firefox  
+Cross-browser runs execute the same Cucumber scenarios used in the standard run, just on a different browser. All `@smoke` and `@regression` scenarios are included. `@visual` is excluded since baselines are Chromium-only.
 
-### CB-002: Login works on WebKit
-**Priority**: P1 — run LoginTest on WebKit  
+### CB-001: Core login flow works on Firefox
+**Priority**: P1 — `@smoke` scenarios, browser=firefox
+
+### CB-002: Core login flow works on WebKit
+**Priority**: P1 — `@smoke` scenarios, browser=webkit
 
 ### CB-003: Add to cart and checkout on Firefox
-**Priority**: P1 — run CartTest + CheckoutTest on Firefox  
+**Priority**: P1 — `@smoke` scenarios, browser=firefox
 
 ### CB-004: Add to cart and checkout on WebKit
-**Priority**: P1 — run CartTest + CheckoutTest on WebKit  
+**Priority**: P1 — `@smoke` scenarios, browser=webkit
 
 ### CB-005: Product sort on Firefox
-**Priority**: P2 — run ProductTest on Firefox  
+**Priority**: P2 — `@regression` scenarios, browser=firefox
 
 ### CB-006: Product sort on WebKit
-**Priority**: P2 — run ProductTest on WebKit  
+**Priority**: P2 — `@regression` scenarios, browser=webkit
 
 ---
 

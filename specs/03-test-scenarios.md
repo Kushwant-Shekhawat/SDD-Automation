@@ -3,18 +3,16 @@
 ## 1. TEST ORGANIZATION
 
 ### Test Categories
-1. **Smoke Tests** - Critical path, quick validation
-2. **Regression Tests** - All features, comprehensive coverage
-3. **Edge Cases** - Boundary conditions, unusual scenarios
-4. **Negative Tests** - Error handling, validation failures
+1. **Smoke Tests** — Critical path, quick validation (`@smoke`)
+2. **Regression Tests** — All features, comprehensive coverage (`@regression`)
+3. **Visual Tests** — Pixel-level screenshot comparison (`@visual`, local only)
 
 ### Test Suite Distribution
 ```
-Total Test Cases: 25
-├── Smoke Tests: 8
-├── Regression Tests: 12
-├── Edge Cases: 3
-└── Negative Tests: 2
+Total Cucumber Scenarios: 69 (across 11 feature files)
+├── @smoke:      ~18 scenarios (login, products, checkout happy path)
+├── @regression: ~63 scenarios (all except @visual)
+└── @visual:      6 scenarios  (excluded from CI, Chromium-only)
 ```
 
 ---
@@ -26,10 +24,9 @@ Total Test Cases: 25
 | Username | Password | Behavior | Usage |
 |----------|----------|----------|-------|
 | standard_user | secret_sauce | Normal behavior | Positive tests |
-| locked_user | secret_sauce | Account locked | Negative test |
+| locked_out_user | secret_sauce | Account locked | Negative test |
 | problem_user | secret_sauce | Visual glitches | Edge case tests |
-| performance_glitchy_user | secret_sauce | Slow responses | Performance tests |
-| visual_user | secret_sauce | Visual rendering | Visual tests |
+| performance_glitch_user | secret_sauce | Slow responses | Performance tests |
 
 ---
 
@@ -299,7 +296,7 @@ Scenario: Login fails with invalid username
 
 **Given**: User is on login page
 **When**:
-- User enters username "locked_user"
+- User enters username "locked_out_user"
 - User enters password "secret_sauce"
 - User clicks Login button
 
@@ -534,7 +531,7 @@ Scenario: Checkout succeeds with problem user (visual issues)
 **Priority**: P2
 **Expected Duration**: 15 seconds (due to slow responses)
 
-**Given**: User logs in with "performance_glitchy_user"
+**Given**: User logs in with "performance_glitch_user"
 **When**:
 - User adds product to cart
 - User proceeds to checkout
@@ -546,7 +543,7 @@ Scenario: Checkout succeeds with problem user (visual issues)
 
 ```gherkin
 Scenario: System handles slow responses gracefully
-  Given User logs in as performance_glitchy_user
+  Given User logs in as performance_glitch_user
   When User interacts with application
   Then All operations should complete eventually
   And No timeout errors should occur
@@ -648,9 +645,8 @@ Scenario: Checkout handles invalid postal code
 | Valid | standard_user | secret_sauce | ✅ Login success |
 | Invalid User | invalid_user | secret_sauce | ❌ Error message |
 | Invalid Pass | standard_user | wrong_pass | ❌ Error message |
-| Locked User | locked_user | secret_sauce | ❌ Account locked error |
-| Visual User | visual_user | secret_sauce | ✅ Login success (visual issues) |
-| Performance | performance_glitchy_user | secret_sauce | ✅ Login success (slow) |
+| Locked User | locked_out_user | secret_sauce | ❌ Account locked error |
+| Performance | performance_glitch_user | secret_sauce | ✅ Login success (slow) |
 
 ### Product Test Combinations
 

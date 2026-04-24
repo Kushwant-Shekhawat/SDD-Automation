@@ -1,3 +1,13 @@
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath('net.masterthought:cucumber-reporting:5.7.5') {
+            exclude group: 'com.fasterxml.jackson.core'
+        }
+        classpath 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    }
+}
+
 plugins {
     id 'java'
 }
@@ -39,6 +49,7 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.24.1'
     testImplementation 'com.github.javafaker:javafaker:1.0.2'
     testImplementation 'org.awaitility:awaitility:4.1.1'
+
 }
 
 // Downloads Playwright browser binaries and system dependencies
@@ -57,4 +68,20 @@ test {
         suites suiteFile
     }
     systemProperties = System.properties
+    finalizedBy 'generateCucumberReport'
+}
+
+task generateCucumberReport {
+    doLast {
+        def jsonFile = file('build/reports/cucumber/cucumber-report.json')
+        if (!jsonFile.exists()) return
+        def outputDir = file('build/reports/cucumber/html')
+        outputDir.mkdirs()
+
+        def config = new net.masterthought.cucumber.Configuration(outputDir, 'SDD Automation Suite')
+        config.setBuildNumber('1')
+        def reportable = new net.masterthought.cucumber.ReportBuilder([jsonFile.absolutePath], config)
+        reportable.generateReports()
+        println "Cucumber report generated: ${outputDir}/cucumber-html-reports/overview-features.html"
+    }
 }

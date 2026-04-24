@@ -9,7 +9,6 @@ import org.testng.annotations.DataProvider;
         glue = "org.example.stepdefs",
         plugin = {
                 "pretty",
-                "html:build/reports/cucumber/cucumber-report.html",
                 "json:build/reports/cucumber/cucumber-report.json"
         },
         monochrome = true

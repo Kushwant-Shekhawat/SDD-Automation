@@ -11,6 +11,7 @@ import org.example.utils.ConfigReader;
 import org.example.utils.LoggerUtil;
 import org.example.utils.ScreenshotUtil;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -43,14 +44,15 @@ public class Hooks {
     public void afterStep(Scenario scenario) {
         String path = ScreenshotUtil.captureStepScreenshot(ctx.page);
         if (path == null) return;
+        int step = ScreenshotUtil.getStepCount();
+        attachToCucumber(scenario, path, "Step " + String.format("%02d", step));
         ExtentTest test = ExtentTestListener.getCurrentTest();
         if (test == null) return;
         try {
-            int step = ScreenshotUtil.getStepCount();
             test.info("Step " + String.format("%02d", step),
                     MediaEntityBuilder.createScreenCaptureFromPath(toReportRelative(path)).build());
         } catch (Exception e) {
-            LoggerUtil.warn("Could not attach step screenshot to report: " + e.getMessage());
+            LoggerUtil.warn("Could not attach step screenshot to Extent report: " + e.getMessage());
         }
     }
 
@@ -58,17 +60,29 @@ public class Hooks {
     public void afterScenario(Scenario scenario) {
         if (scenario.isFailed()) {
             String path = ScreenshotUtil.captureFailureScreenshot(ctx.page, scenario.getName());
-            ExtentTest test = ExtentTestListener.getCurrentTest();
-            if (test != null && path != null) {
-                try {
-                    test.fail("Failed at this state",
-                            MediaEntityBuilder.createScreenCaptureFromPath(toReportRelative(path)).build());
-                } catch (Exception e) {
-                    LoggerUtil.warn("Could not attach failure screenshot to report: " + e.getMessage());
+            if (path != null) {
+                attachToCucumber(scenario, path, "Failure");
+                ExtentTest test = ExtentTestListener.getCurrentTest();
+                if (test != null) {
+                    try {
+                        test.fail("Failed at this state",
+                                MediaEntityBuilder.createScreenCaptureFromPath(toReportRelative(path)).build());
+                    } catch (Exception e) {
+                        LoggerUtil.warn("Could not attach failure screenshot to Extent report: " + e.getMessage());
+                    }
                 }
             }
         }
         ScreenshotUtil.cleanupScenario();
         ctx.tearDown();
+    }
+
+    private static void attachToCucumber(Scenario scenario, String path, String name) {
+        try {
+            byte[] bytes = Files.readAllBytes(Paths.get(path));
+            scenario.attach(bytes, "image/png", name);
+        } catch (Exception e) {
+            LoggerUtil.warn("Could not attach screenshot to Cucumber report: " + e.getMessage());
+        }
     }
 }

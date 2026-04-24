@@ -730,3 +730,330 @@ This test scenarios specification will be reviewed for:
 4. Coverage of all features
 
 **Status**: ✅ Test Scenarios Specification Complete
+
+---
+
+## 11. LOGOUT SCENARIOS
+
+### LO-001: Successful logout navigates to login page
+**Category**: Smoke | **Priority**: P0
+
+**Given**: User is logged in as standard_user
+**When**: User opens menu and clicks Logout
+**Then**: User is redirected to login page and Login button is visible
+
+### LO-002: After logout, back button does not restore session
+**Category**: Security | **Priority**: P1
+
+**Given**: User is logged in and navigates to `/inventory.html`
+**When**: User logs out and presses browser back button
+**Then**: User remains on login page; protected inventory page is not accessible
+
+### LO-003: After logout, direct URL access redirects to login
+**Category**: Security | **Priority**: P1
+
+**Given**: User has logged out
+**When**: User navigates directly to `/inventory.html`
+**Then**: User is redirected to login page; inventory content is not visible
+
+### LO-004: Reset app state clears cart
+**Category**: Regression | **Priority**: P2
+
+**Given**: User has items in cart
+**When**: User opens menu and clicks Reset App State, then closes menu
+**Then**: Cart badge is not visible
+
+### LO-005: Menu opens and closes correctly
+**Category**: Regression | **Priority**: P2
+
+**Given**: User is on products page
+**When**: User clicks the hamburger menu button
+**Then**: Menu slides open; when user clicks X, menu closes
+
+```gherkin
+Feature: Logout functionality
+  Background:
+    Given I am logged in as "standard_user" with password "secret_sauce"
+
+  Scenario: Successful logout returns to login page
+    When I open the navigation menu
+    And I click the logout link
+    Then I should be on the login page
+
+  Scenario: After logout direct URL access redirects to login
+    When I open the navigation menu
+    And I click the logout link
+    And I navigate directly to "/inventory.html"
+    Then I should be on the login page
+
+  Scenario: Reset app state clears cart
+    Given I add "Sauce Labs Backpack" to the cart
+    When I open the navigation menu
+    And I click the reset app state link
+    And I close the navigation menu
+    Then the cart badge should not be visible
+
+  Scenario: Menu can be opened and closed
+    When I open the navigation menu
+    Then the navigation menu should be visible
+    When I close the navigation menu
+    Then the navigation menu should not be visible
+```
+
+---
+
+## 12. PRODUCT SORTING SCENARIOS
+
+### PS-001: Default sort is Name (A to Z)
+**Category**: Regression | **Priority**: P1
+
+**Given**: User is on products page (just logged in)
+**Then**: First product is "Sauce Labs Backpack"; last is "Test.allTheThings() T-Shirt (Red)"
+
+### PS-002 to PS-004: All four sort options work correctly
+**Category**: Regression | **Priority**: P1
+
+| Sort Option | Expected First | Expected Last |
+|-------------|---------------|--------------|
+| Name (Z to A) | Test.allTheThings() T-Shirt (Red) | Sauce Labs Backpack |
+| Price (low to high) | $7.99 | $49.99 |
+| Price (high to low) | $49.99 | $7.99 |
+
+### PS-005: Sort persists when navigating back from product details
+**Category**: Edge Case | **Priority**: P2
+
+### PS-006: All products remain visible after each sort
+**Category**: Regression | **Priority**: P2 — product count always 6
+
+```gherkin
+Feature: Product sorting functionality
+  Background:
+    Given I am logged in as "standard_user" with password "secret_sauce"
+
+  Scenario: Default sort shows products A to Z
+    Then the first product name should be "Sauce Labs Backpack"
+
+  Scenario: Sort by Name Z to A
+    When I sort products by "Name (Z to A)"
+    Then the first product name should be "Test.allTheThings() T-Shirt (Red)"
+
+  Scenario: Sort by Price low to high
+    When I sort products by "Price (low to high)"
+    Then the first product price should be "$7.99"
+    And the last product price should be "$49.99"
+
+  Scenario: Sort by Price high to low
+    When I sort products by "Price (high to low)"
+    Then the first product price should be "$49.99"
+    And the last product price should be "$7.99"
+
+  Scenario: Product count stays the same after sorting
+    When I sort products by "Name (Z to A)"
+    Then I should see 6 products on the page
+
+  Scenario: Sort persists after viewing product details and returning
+    When I sort products by "Price (low to high)"
+    And I click on product "Sauce Labs Onesie"
+    And I click back to products
+    Then the first product price should be "$7.99"
+```
+
+---
+
+## 13. PRODUCT DETAILS SCENARIOS
+
+### PD-001/002: Product details shows correct name and price
+**Category**: Regression | **Priority**: P1 — "Sauce Labs Backpack" → "$29.99"
+
+### PD-003/004: Description and image are visible
+**Category**: Regression | **Priority**: P2
+
+### PD-005: Add to cart from detail page updates cart badge
+**Category**: Smoke | **Priority**: P0 — badge shows "1", button changes to "Remove"
+
+### PD-006: Remove from cart on detail page clears badge
+**Category**: Regression | **Priority**: P1 — badge gone, button back to "Add to cart"
+
+### PD-007: Back to products returns to inventory
+**Category**: Smoke | **Priority**: P0
+
+### PD-008: All 6 products have accessible detail pages
+**Category**: Regression | **Priority**: P2
+
+```gherkin
+Feature: Product details page functionality
+  Background:
+    Given I am logged in as "standard_user" with password "secret_sauce"
+
+  Scenario: Product details shows correct name and price
+    When I click on product "Sauce Labs Backpack"
+    Then I should be on the product details page
+    And the product name should be "Sauce Labs Backpack"
+    And the product price should be "$29.99"
+
+  Scenario: Product description is visible on detail page
+    When I click on product "Sauce Labs Bike Light"
+    Then I should be on the product details page
+    And the product description should not be empty
+
+  Scenario: Add to cart from product details page
+    When I click on product "Sauce Labs Backpack"
+    And I click add to cart on the details page
+    Then the cart badge should show "1"
+    And the remove button should be visible on details page
+
+  Scenario: Remove from cart on product details page
+    When I click on product "Sauce Labs Backpack"
+    And I click add to cart on the details page
+    And I click remove on the details page
+    Then the cart badge should not be visible
+    And the add to cart button should be visible on details page
+
+  Scenario: Back to products from detail page
+    When I click on product "Sauce Labs Backpack"
+    Then I should be on the product details page
+    When I click back to products
+    Then I should be on the products page
+```
+
+---
+
+## 14. MULTI-ITEM CART SCENARIOS
+
+### MC-001: Add all 6 products — cart badge shows "6"
+**Category**: Regression | **Priority**: P1
+
+### MC-002: Cart badge increments correctly with each addition
+**Category**: Regression | **Priority**: P1
+
+### MC-003: Remove one item from multi-item cart
+**Category**: Regression | **Priority**: P1
+
+### MC-004: Checkout total reflects all items
+**Category**: Regression | **Priority**: P1 — Backpack ($29.99) + Bike Light ($9.99) = $39.98
+
+### MC-005: Cart persists across page navigation
+**Category**: Edge Case | **Priority**: P2
+
+### MC-006: Adding same product via list and detail pages is idempotent
+**Category**: Edge Case | **Priority**: P2
+
+### MC-007: Remove all items — cart is empty at checkout
+**Category**: Regression | **Priority**: P1
+
+```gherkin
+Feature: Multi-item cart management
+  Background:
+    Given I am logged in as "standard_user" with password "secret_sauce"
+
+  Scenario: Add multiple products and verify cart count
+    When I add "Sauce Labs Backpack" to the cart
+    And I add "Sauce Labs Bike Light" to the cart
+    And I add "Sauce Labs Bolt T-Shirt" to the cart
+    Then the cart badge should show "3"
+
+  Scenario: Cart page lists all added products
+    When I add "Sauce Labs Backpack" to the cart
+    And I add "Sauce Labs Bike Light" to the cart
+    And I navigate to the cart
+    Then "Sauce Labs Backpack" should be in the cart
+    And "Sauce Labs Bike Light" should be in the cart
+    And the cart item count should be 2
+
+  Scenario: Remove one item from multi-item cart
+    When I add "Sauce Labs Backpack" to the cart
+    And I add "Sauce Labs Bike Light" to the cart
+    And I navigate to the cart
+    And I remove "Sauce Labs Backpack" from the cart
+    Then the cart item count should be 1
+
+  Scenario: Checkout item total is correct for two items
+    When I add "Sauce Labs Backpack" to the cart
+    And I add "Sauce Labs Bike Light" to the cart
+    And I navigate to the cart
+    And I click the checkout button
+    And I enter first name "John", last name "Doe", and postal code "12345"
+    And I click continue on checkout
+    Then the item total should contain "39.98"
+
+  Scenario: Cart count persists after visiting product detail page
+    When I add "Sauce Labs Backpack" to the cart
+    And I add "Sauce Labs Bike Light" to the cart
+    And I click on product "Sauce Labs Bolt T-Shirt"
+    And I click back to products
+    Then the cart badge should show "2"
+```
+
+---
+
+## 15. CHECKOUT VALIDATION SCENARIOS
+
+### Validation Rules — Step One (Customer Information)
+
+| Scenario | Input State | Expected Error |
+|----------|-------------|----------------|
+| CV-001 | firstName="" | "Error: First Name is required" |
+| CV-002 | lastName="" | "Error: Last Name is required" |
+| CV-003 | postalCode="" | "Error: Postal Code is required" |
+| CV-004 | all fields empty | "Error: First Name is required" |
+| CV-005 | Error visible | Dismiss with X button — error disappears |
+| CV-006 | Cancel on step one | Returns to cart page |
+| CV-007 | Cancel on step two | Returns to products page |
+| CV-008 | Valid order | Total = subtotal + tax (tax > 0) |
+| CV-009 | Special chars in name | Proceeds to step two without error |
+| CV-010 | Very long postal code | Form submits (SauceDemo accepts any non-empty value) |
+
+```gherkin
+Feature: Checkout form validation
+  Background:
+    Given I am logged in as "standard_user" with password "secret_sauce"
+    And I have "Sauce Labs Backpack" in my cart
+    And I am on the cart page
+    And I click the checkout button
+
+  Scenario: Missing first name shows validation error
+    When I enter first name "", last name "Doe", and postal code "12345"
+    And I click continue on checkout
+    Then I should see an error message containing "First Name is required"
+
+  Scenario: Missing last name shows validation error
+    When I enter first name "John", last name "", and postal code "12345"
+    And I click continue on checkout
+    Then I should see an error message containing "Last Name is required"
+
+  Scenario: Missing postal code shows validation error
+    When I enter first name "John", last name "Doe", and postal code ""
+    And I click continue on checkout
+    Then I should see an error message containing "Postal Code is required"
+
+  Scenario: All fields empty shows first name error
+    When I enter first name "", last name "", and postal code ""
+    And I click continue on checkout
+    Then I should see an error message containing "First Name is required"
+
+  Scenario: Validation error can be dismissed
+    When I enter first name "", last name "Doe", and postal code "12345"
+    And I click continue on checkout
+    And I dismiss the checkout error
+    Then the checkout error should not be visible
+
+  Scenario: Cancel on step one returns to cart
+    When I click cancel on checkout
+    Then I should be on the cart page
+
+  Scenario: Cancel on step two returns to products
+    When I enter first name "John", last name "Doe", and postal code "12345"
+    And I click continue on checkout
+    And I click cancel on checkout
+    Then I should be on the products page
+
+  Scenario: Order total includes tax on step two
+    When I enter first name "John", last name "Doe", and postal code "12345"
+    And I click continue on checkout
+    Then the order total should be greater than the item total
+
+  Scenario: Checkout with special characters completes successfully
+    When I enter first name "John-O'Brien", last name "Müller", and postal code "SW1A 1AA"
+    And I click continue on checkout
+    Then I should be on checkout step two
+```

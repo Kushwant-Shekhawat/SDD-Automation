@@ -496,3 +496,112 @@ Filter by text (for product-specific buttons):
 ---
 
 **Status**: ✅ Page Object Model Specification - CORRECTED and SIMPLIFIED
+
+---
+
+## 15. NAVIGATIONCOMPONENT SPECIFICATION
+
+### Elements and Locators
+
+| Element | Locator | Type |
+|---------|---------|------|
+| Menu Button | #react-burger-menu-btn | Button |
+| Menu Container | .bm-menu-wrap | Container |
+| Close Button | #react-burger-cross-btn | Button |
+| Logout Link | #logout_sidebar_link | Link |
+| All Items Link | #inventory_sidebar_link | Link |
+| About Link | #about_sidebar_link | Link |
+| Reset App State Link | #reset_sidebar_link | Link |
+
+### Public Methods
+
+```java
+public void openMenu()
+public void closeMenu()
+public void logout()
+public void clickAllItems()
+public void resetAppState()
+public boolean isMenuVisible()   // checks .bm-menu-wrap[aria-hidden="false"]
+```
+
+---
+
+## 16. PRODUCTSPAGE — SORTING & ADDITIONAL METHODS
+
+### Sort Dropdown Locators
+
+| Element | Locator | Type |
+|---------|---------|------|
+| Sort Dropdown | `.product_sort_container` | Select |
+| Product Name | `.inventory_item_name` | Text |
+| Product Price | `.inventory_item_price` | Text |
+
+### Sort Values
+
+| Label | Select Value |
+|-------|-------------|
+| Name (A to Z) | `az` |
+| Name (Z to A) | `za` |
+| Price (low to high) | `lohi` |
+| Price (high to low) | `hilo` |
+
+### Additional Public Methods
+
+```java
+public String getFirstProductName()
+public String getLastProductName()
+public String getFirstProductPrice()
+public String getLastProductPrice()
+public boolean arePricesInAscendingOrder()
+public boolean arePricesInDescendingOrder()
+public void addAllProductsToCart()   // clicks all .btn_inventory buttons
+```
+
+---
+
+## 17. PRODUCTDETAILSPAGE — ADDITIONAL LOCATORS & METHODS
+
+### Updated Locators (use data-test* to avoid strict-mode violations)
+
+| Element | Locator | Type |
+|---------|---------|------|
+| Product Name | `.inventory_details_name` | Text |
+| Product Description | `.inventory_details_desc` | Text |
+| Product Price | `.inventory_details_price` | Text |
+| Product Image | `.inventory_details_img` | Image |
+| Add to Cart | `[data-test*="add-to-cart"]` | Button |
+| Remove | `[data-test*="remove"]` | Button |
+| Back to Products | `[data-test="back-to-products"]` | Link |
+
+### Additional Public Methods
+
+```java
+public String getProductPrice()
+public String getProductDescription()
+public boolean isProductImageVisible()
+public boolean isAddToCartButtonVisible()
+public boolean isRemoveButtonVisible()
+public void addToCart()
+public void removeFromCart()
+```
+
+---
+
+## 18. CARTPAGE & CHECKOUTPAGE — ADDITIONAL METHODS
+
+### CartPage
+
+```java
+public int getCartItemCount()   // count of .cart_item elements
+```
+
+### CheckoutPage — Error & Totals
+
+```java
+public void dismissError()           // clicks .error-button
+public boolean isErrorVisible()      // [data-test="error"] visible within 2s
+public String getItemTotal()         // .summary_subtotal_label
+public String getTaxAmount()         // .summary_tax_label
+public String getOrderTotal()        // .summary_total_label
+public double parsePrice(String priceLabel)  // strips non-numeric chars
+```

@@ -554,7 +554,31 @@ public class CheckoutTests extends BaseTest {
 
 ---
 
-## 11. NEXT PHASE: CLARIFY
+## 11. CHECKOUT VALIDATION DATA
+
+### Step One Validation Rules
+
+| Scenario | firstName | lastName | postalCode | Expected Error |
+|----------|-----------|----------|------------|----------------|
+| CV-001 | (empty) | Doe | 12345 | First Name is required |
+| CV-002 | John | (empty) | 12345 | Last Name is required |
+| CV-003 | John | Doe | (empty) | Postal Code is required |
+| CV-004 | (empty) | (empty) | (empty) | First Name is required |
+
+### Step Two — Order Summary Locators
+
+| Element | Locator |
+|---------|---------|
+| Item Total | `.summary_subtotal_label` |
+| Tax Amount | `.summary_tax_label` |
+| Order Total | `.summary_total_label` |
+| Error Close | `.error-button` |
+
+### Rule: Order total must equal item total + tax (tax > 0)
+
+---
+
+## 12. NEXT PHASE: CLARIFY
 
 This test data specification will be reviewed for:
 1. Data accuracy and completeness

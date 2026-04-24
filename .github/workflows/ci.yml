@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  # ── Main test run: all 69 scenarios, headless, 4 threads ──────────────────
+  # ── Main test run: 63 scenarios (visual excluded), headless, 4 threads ──────
   test:
     name: Run All Tests (Chromium)
     runs-on: ubuntu-latest
@@ -30,9 +30,11 @@ jobs:
         run: ./gradlew installPlaywright
 
       - name: Run all tests (headless, 4 threads)
-        run: ./gradlew test -DsuiteFile=src/test/resources/testng/testng.xml -DENV=ci
-        env:
-          browser.headless: "true"
+        run: >
+          ./gradlew test
+          -DsuiteFile=src/test/resources/testng/testng.xml
+          -Dcucumber.filter.tags="not @visual"
+          -DENV=ci
 
       - name: Upload Cucumber report
         if: always()

@@ -41,14 +41,14 @@ dependencies {
     testImplementation 'org.awaitility:awaitility:4.1.1'
 }
 
-// Downloads Playwright browser binaries
-// Usage: ./gradlew installPlaywright                    (chromium default)
-//        ./gradlew installPlaywright -Dbrowser=firefox
-//        ./gradlew installPlaywright -Dbrowser=webkit
+// Downloads Playwright browser binaries and system dependencies
+// Usage: ./gradlew installPlaywright                    (all browsers — CI default)
+//        ./gradlew installPlaywright -Dbrowser=chromium (single browser — local dev)
 task installPlaywright(type: JavaExec, dependsOn: classes) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.microsoft.playwright.CLI'
-    args 'install', '--with-deps', System.getProperty('browser', 'chromium')
+    def browser = System.getProperty('browser', '')
+    args = browser ? ['install', '--with-deps', browser] : ['install', '--with-deps']
 }
 
 test {

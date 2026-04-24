@@ -1,6 +1,5 @@
 package org.example.stepdefs;
 
-import io.cucumber.java.After;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -14,11 +13,6 @@ public class CheckoutSteps {
 
     public CheckoutSteps(SharedContext ctx) {
         this.ctx = ctx;
-    }
-
-    @After
-    public void tearDown() {
-        ctx.tearDown();
     }
 
     @Given("I have {string} in my cart")
@@ -74,5 +68,27 @@ public class CheckoutSteps {
     @When("I click cancel on checkout")
     public void iClickCancelOnCheckout() {
         ctx.checkoutPage.clickCancel();
+    }
+
+    @And("I dismiss the checkout error")
+    public void iDismissTheCheckoutError() {
+        ctx.checkoutPage.dismissError();
+    }
+
+    @Then("the checkout error should not be visible")
+    public void theCheckoutErrorShouldNotBeVisible() {
+        assertThat(ctx.checkoutPage.isErrorVisible()).isFalse();
+    }
+
+    @Then("the order total should be greater than the item total")
+    public void theOrderTotalShouldBeGreaterThanTheItemTotal() {
+        double itemTotal = ctx.checkoutPage.parsePrice(ctx.checkoutPage.getItemTotal());
+        double orderTotal = ctx.checkoutPage.parsePrice(ctx.checkoutPage.getOrderTotal());
+        assertThat(orderTotal).isGreaterThan(itemTotal);
+    }
+
+    @Then("the item total should contain {string}")
+    public void theItemTotalShouldContain(String expected) {
+        assertThat(ctx.checkoutPage.getItemTotal()).contains(expected);
     }
 }

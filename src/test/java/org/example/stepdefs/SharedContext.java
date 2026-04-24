@@ -12,6 +12,7 @@ public class SharedContext {
     public final ProductDetailsPage productDetailsPage;
     public final CartPage cartPage;
     public final CheckoutPage checkoutPage;
+    public final NavigationComponent navigationComponent;
 
     public SharedContext() {
         WebDriverManager.initBrowser();
@@ -21,6 +22,7 @@ public class SharedContext {
         this.productDetailsPage = new ProductDetailsPage(page);
         this.cartPage = new CartPage(page);
         this.checkoutPage = new CheckoutPage(page);
+        this.navigationComponent = new NavigationComponent(page);
         page.navigate(org.example.utils.ConfigReader.getBaseUrl());
     }
 

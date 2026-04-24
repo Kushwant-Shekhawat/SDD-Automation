@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Visual Regression Suite" parallel="none" verbose="1">
+
+    <listeners>
+        <listener class-name="org.example.listeners.ExtentTestListener"/>
+    </listeners>
+
+    <test name="Visual Regression Tests">
+        <classes>
+            <class name="org.example.tests.VisualRegressionTest"/>
+        </classes>
+    </test>
+
+</suite>

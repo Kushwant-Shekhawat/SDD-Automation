@@ -80,4 +80,16 @@ public class CheckoutPage extends BasePage {
     public void clickBackHome() {
         click(page.locator("[data-test='back-to-products']"));
     }
+
+    public void dismissError() {
+        click(page.locator(".error-button"));
+    }
+
+    public boolean isErrorVisible() {
+        return isVisible(page.locator("[data-test='error']"), 2000);
+    }
+
+    public double parsePrice(String priceLabel) {
+        return Double.parseDouble(priceLabel.replaceAll("[^0-9.]", ""));
+    }
 }

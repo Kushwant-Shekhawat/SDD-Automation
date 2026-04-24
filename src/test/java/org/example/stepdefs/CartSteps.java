@@ -39,4 +39,9 @@ public class CartSteps {
     public void iShouldBeOnTheCartPage() {
         assertThat(ctx.cartPage.isCartPageDisplayed()).isTrue();
     }
+
+    @Then("the cart item count should be {int}")
+    public void theCartItemCountShouldBe(int expected) {
+        assertThat(ctx.cartPage.getCartItemCount()).isEqualTo(expected);
+    }
 }

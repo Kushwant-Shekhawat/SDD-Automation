@@ -31,11 +31,11 @@ public class ProductDetailsPage extends BasePage {
     }
 
     public void addToCart() {
-        click(page.locator("button.btn_primary"));
+        click(page.locator("[data-test*='add-to-cart']"));
     }
 
     public void removeFromCart() {
-        click(page.locator("button.btn_secondary"));
+        click(page.locator("[data-test*='remove']"));
     }
 
     public void clickBackToProducts() {
@@ -43,10 +43,10 @@ public class ProductDetailsPage extends BasePage {
     }
 
     public boolean isAddToCartButtonVisible() {
-        return isVisible(page.locator("button.btn_primary"), 3000);
+        return isVisible(page.locator("[data-test*='add-to-cart']"), 3000);
     }
 
     public boolean isRemoveButtonVisible() {
-        return isVisible(page.locator("button.btn_secondary"), 3000);
+        return isVisible(page.locator("[data-test*='remove']"), 3000);
     }
 }

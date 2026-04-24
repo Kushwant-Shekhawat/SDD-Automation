@@ -80,4 +80,49 @@ public class ProductSteps {
     public void theProductNameShouldBe(String expectedName) {
         assertThat(ctx.productDetailsPage.getProductName()).isEqualTo(expectedName);
     }
+
+    @Then("the first product name should be {string}")
+    public void theFirstProductNameShouldBe(String expected) {
+        assertThat(ctx.productsPage.getFirstProductName()).isEqualTo(expected);
+    }
+
+    @Then("the last product price should be {string}")
+    public void theLastProductPriceShouldBe(String expected) {
+        assertThat(ctx.productsPage.getLastProductPrice()).isEqualTo(expected);
+    }
+
+    @And("I click back to products")
+    public void iClickBackToProducts() {
+        ctx.productDetailsPage.clickBackToProducts();
+    }
+
+    @Then("the product price should be {string}")
+    public void theProductPriceShouldBe(String expected) {
+        assertThat(ctx.productDetailsPage.getProductPrice()).isEqualTo(expected);
+    }
+
+    @Then("the product description should not be empty")
+    public void theProductDescriptionShouldNotBeEmpty() {
+        assertThat(ctx.productDetailsPage.getProductDescription()).isNotEmpty();
+    }
+
+    @And("I click add to cart on the details page")
+    public void iClickAddToCartOnTheDetailsPage() {
+        ctx.productDetailsPage.addToCart();
+    }
+
+    @And("I click remove on the details page")
+    public void iClickRemoveOnTheDetailsPage() {
+        ctx.productDetailsPage.removeFromCart();
+    }
+
+    @Then("the remove button should be visible on details page")
+    public void theRemoveButtonShouldBeVisibleOnDetailsPage() {
+        assertThat(ctx.productDetailsPage.isRemoveButtonVisible()).isTrue();
+    }
+
+    @Then("the add to cart button should be visible on details page")
+    public void theAddToCartButtonShouldBeVisibleOnDetailsPage() {
+        assertThat(ctx.productDetailsPage.isAddToCartButtonVisible()).isTrue();
+    }
 }

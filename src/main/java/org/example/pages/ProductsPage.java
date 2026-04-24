@@ -58,4 +58,42 @@ public class ProductsPage extends BasePage {
     public int getProductCount() {
         return page.locator(".inventory_item").count();
     }
+
+    public String getFirstProductName() {
+        return page.locator(".inventory_item_name").first().textContent().trim();
+    }
+
+    public String getLastProductName() {
+        List<String> names = getProductNames();
+        return names.get(names.size() - 1);
+    }
+
+    public String getFirstProductPrice() {
+        return page.locator(".inventory_item_price").first().textContent().trim();
+    }
+
+    public String getLastProductPrice() {
+        List<String> prices = getProductPrices();
+        return prices.get(prices.size() - 1);
+    }
+
+    public boolean arePricesInAscendingOrder() {
+        List<Double> prices = getProductPrices().stream()
+                .map(p -> Double.parseDouble(p.replace("$", "").trim()))
+                .collect(java.util.stream.Collectors.toList());
+        for (int i = 0; i < prices.size() - 1; i++) {
+            if (prices.get(i) > prices.get(i + 1)) return false;
+        }
+        return true;
+    }
+
+    public boolean arePricesInDescendingOrder() {
+        List<Double> prices = getProductPrices().stream()
+                .map(p -> Double.parseDouble(p.replace("$", "").trim()))
+                .collect(java.util.stream.Collectors.toList());
+        for (int i = 0; i < prices.size() - 1; i++) {
+            if (prices.get(i) < prices.get(i + 1)) return false;
+        }
+        return true;
+    }
 }

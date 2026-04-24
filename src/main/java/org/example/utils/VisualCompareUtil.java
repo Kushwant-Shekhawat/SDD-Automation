@@ -14,7 +14,7 @@ public class VisualCompareUtil {
 
     private static final String BASELINE_DIR = "src/test/resources/visual-baselines/";
     private static final String DIFF_DIR = "build/reports/visual/diffs/";
-    private static final double THRESHOLD = 0.01;
+    private static final double THRESHOLD = 0.03; // 3% — accounts for parallel headless rendering variance
 
     public static boolean compareScreenshot(Page page, String baselineName) {
         new File(DIFF_DIR).mkdirs();

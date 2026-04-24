@@ -709,7 +709,7 @@ public class CucumberRunner extends AbstractTestNGCucumberTests {
 
 ### Update testng.xml to include Cucumber runner:
 
-```xml
+xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-current.dtd">
 <suite name="SDD-Automation Suite with Cucumber" parallel="classes" thread-count="1">
@@ -735,7 +735,6 @@ public class CucumberRunner extends AbstractTestNGCucumberTests {
     </test>
     
 </suite>
-```
 
 ---
 

@@ -355,7 +355,7 @@ Uses PicoContainer for dependency injection
 ## 13. TESTNG CONFIGURATION
 
 ### testng.xml (Sequential)
-```xml
+xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-current.dtd">
 <suite name="SDD-Automation Suite" parallel="none" thread-count="1">
@@ -378,7 +378,6 @@ Uses PicoContainer for dependency injection
     </classes>
   </test>
 </suite>
-```
 
 ### testng-parallel.xml (Parallel)
 Thread-count=4 for parallel execution

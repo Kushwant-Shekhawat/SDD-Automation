@@ -1,5 +1,10 @@
 # SDD-Automation — Claude Code Instructions
 
+## Maintenance Rule
+Whenever a change is made to this project — new page object, new feature file, new utility,
+report path change, config change, convention change, new Gradle task, etc. — update this
+CLAUDE.md file in the same commit to keep it accurate.
+
 ## Project Overview
 UI test automation framework for [SauceDemo](https://www.saucedemo.com) built using
 Spec-Driven Development (SDD). Stack: Java 11 + Playwright 1.51.0 + TestNG 7.7.0 + Cucumber 7.14.0.

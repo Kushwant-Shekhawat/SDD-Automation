@@ -2,65 +2,70 @@ package org.example.pages;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
+import org.example.utils.LocatorStore;
 
 import java.util.List;
 
-public class ProductsPage extends BasePage {
+public class ProductsPage extends PlaywrightActions {
 
     public ProductsPage(Page page) {
         super(page);
     }
 
     public boolean isProductsPageDisplayed() {
-        return isVisible(page.locator(".title").filter(new Locator.FilterOptions().setHasText("Products")), 5000);
+        return isVisible(
+                page.locator(LocatorStore.get("products", "pageTitle"))
+                        .filter(new Locator.FilterOptions().setHasText("Products")),
+                5000);
     }
 
     public List<String> getProductNames() {
-        return page.locator(".inventory_item_name").allTextContents();
+        return getAllTexts(page.locator(LocatorStore.get("products", "productNameLink")));
     }
 
     public void addProductToCart(String productName) {
-        Locator product = page.locator(".inventory_item")
+        // Filter-based chaining: base selector from JSON, product match via Playwright filter
+        Locator product = page.locator(LocatorStore.get("products", "inventoryItem"))
                 .filter(new Locator.FilterOptions().setHasText(productName));
         click(product.locator("button"));
     }
 
     public void removeProductFromCart(String productName) {
-        Locator product = page.locator(".inventory_item")
+        Locator product = page.locator(LocatorStore.get("products", "inventoryItem"))
                 .filter(new Locator.FilterOptions().setHasText(productName));
         click(product.locator("button"));
     }
 
     public void clickProductName(String productName) {
-        Locator item = page.locator(".inventory_item")
+        Locator item = page.locator(LocatorStore.get("products", "inventoryItem"))
                 .filter(new Locator.FilterOptions().setHasText(productName));
         click(item.locator("a[id*='title_link']"));
     }
 
     public int getCartItemCount() {
-        Locator badge = page.locator(".shopping_cart_badge");
+        Locator badge = page.locator(LocatorStore.get("products", "cartBadge"));
         if (!badge.isVisible()) return 0;
         return Integer.parseInt(badge.textContent().trim());
     }
 
     public void clickShoppingCart() {
-        click(page.locator(".shopping_cart_link"));
+        click(page.locator(LocatorStore.get("products", "cartLink")));
     }
 
     public void selectSortOption(String sortValue) {
-        page.locator(".product_sort_container").selectOption(sortValue);
+        selectByValue(page.locator(LocatorStore.get("products", "sortDropdown")), sortValue);
     }
 
     public List<String> getProductPrices() {
-        return page.locator(".inventory_item_price").allTextContents();
+        return getAllTexts(page.locator(LocatorStore.get("products", "productPrice")));
     }
 
     public int getProductCount() {
-        return page.locator(".inventory_item").count();
+        return getCount(page.locator(LocatorStore.get("products", "inventoryItem")));
     }
 
     public String getFirstProductName() {
-        return page.locator(".inventory_item_name").first().textContent().trim();
+        return page.locator(LocatorStore.get("products", "productNameLink")).first().textContent().trim();
     }
 
     public String getLastProductName() {
@@ -69,7 +74,7 @@ public class ProductsPage extends BasePage {
     }
 
     public String getFirstProductPrice() {
-        return page.locator(".inventory_item_price").first().textContent().trim();
+        return page.locator(LocatorStore.get("products", "productPrice")).first().textContent().trim();
     }
 
     public String getLastProductPrice() {
@@ -87,10 +92,6 @@ public class ProductsPage extends BasePage {
         return true;
     }
 
-    public void addAllProductsToCart() {
-        page.locator(".btn_inventory").all().forEach(btn -> btn.click());
-    }
-
     public boolean arePricesInDescendingOrder() {
         List<Double> prices = getProductPrices().stream()
                 .map(p -> Double.parseDouble(p.replace("$", "").trim()))
@@ -99,5 +100,9 @@ public class ProductsPage extends BasePage {
             if (prices.get(i) < prices.get(i + 1)) return false;
         }
         return true;
+    }
+
+    public void addAllProductsToCart() {
+        page.locator(LocatorStore.get("products", "allAddToCartBtns")).all().forEach(btn -> btn.click());
     }
 }

@@ -1,8 +1,9 @@
 package org.example.pages;
 
 import com.microsoft.playwright.Page;
+import org.example.utils.LocatorStore;
 
-public class ProductDetailsPage extends BasePage {
+public class ProductDetailsPage extends PlaywrightActions {
 
     public ProductDetailsPage(Page page) {
         super(page);
@@ -14,39 +15,39 @@ public class ProductDetailsPage extends BasePage {
                     new Page.WaitForURLOptions().setTimeout(5000));
             return true;
         } catch (Exception e) {
-            return isVisible(page.locator(".inventory_details_name"), 3000);
+            return isVisible(page.locator(LocatorStore.get("product-details", "productName")), 3000);
         }
     }
 
     public String getProductName() {
-        return getText(page.locator(".inventory_details_name"));
+        return getText(page.locator(LocatorStore.get("product-details", "productName")));
     }
 
     public String getProductDescription() {
-        return getText(page.locator(".inventory_details_desc"));
+        return getText(page.locator(LocatorStore.get("product-details", "productDescription")));
     }
 
     public String getProductPrice() {
-        return getText(page.locator(".inventory_details_price"));
+        return getText(page.locator(LocatorStore.get("product-details", "productPrice")));
     }
 
     public void addToCart() {
-        click(page.locator("[data-test*='add-to-cart']"));
+        click(page.locator(LocatorStore.get("product-details", "addToCartButton")));
     }
 
     public void removeFromCart() {
-        click(page.locator("[data-test*='remove']"));
+        click(page.locator(LocatorStore.get("product-details", "removeButton")));
     }
 
     public void clickBackToProducts() {
-        click(page.locator("[data-test='back-to-products']"));
+        click(page.locator(LocatorStore.get("product-details", "backToProducts")));
     }
 
     public boolean isAddToCartButtonVisible() {
-        return isVisible(page.locator("[data-test*='add-to-cart']"), 3000);
+        return isVisible(page.locator(LocatorStore.get("product-details", "addToCartButton")), 3000);
     }
 
     public boolean isRemoveButtonVisible() {
-        return isVisible(page.locator("[data-test*='remove']"), 3000);
+        return isVisible(page.locator(LocatorStore.get("product-details", "removeButton")), 3000);
     }
 }

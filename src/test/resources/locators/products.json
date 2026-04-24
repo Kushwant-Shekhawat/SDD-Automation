@@ -1,0 +1,13 @@
+{
+  "pageTitle":          ".title",
+  "inventoryContainer": "div.inventory_container",
+  "inventoryItem":      "div.inventory_item",
+  "productNameLink":    ".inventory_item_name",
+  "productPrice":       ".inventory_item_price",
+  "sortDropdown":       ".product_sort_container",
+  "cartBadge":          ".shopping_cart_badge",
+  "cartLink":           ".shopping_cart_link",
+  "allAddToCartBtns":   ".btn_inventory",
+  "addToCartButton":    "[data-test='add-to-cart-{dataTestSuffix}']",
+  "removeButton":       "[data-test='remove-{dataTestSuffix}']"
+}

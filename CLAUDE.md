@@ -33,9 +33,9 @@ Spec-Driven Development (SDD). Stack: Java 11 + Playwright 1.51.0 + TestNG 7.7.0
 ```
 src/main/java/org/example/
   driver/       WebDriverManager.java        — ThreadLocal Playwright browser/page lifecycle
-  pages/        BasePage.java + 6 page objects — Page Object Model
+  pages/        PlaywrightActions.java + 6 page objects — Page Object Model
   data/         TestDataProvider.java         — CSV-based test data
-  utils/        ConfigReader, LoggerUtil, ScreenshotUtil, WaitUtil, VisualCompareUtil
+  utils/        ConfigReader, LoggerUtil, LocatorStore, ScreenshotUtil, WaitUtil, VisualCompareUtil
 
 src/test/java/org/example/
   runners/      CucumberRunner.java           — @DataProvider(parallel=true), 4 threads
@@ -46,6 +46,7 @@ src/test/java/org/example/
 src/test/resources/
   features/     11 .feature files (69 scenarios total, @visual tag excludes CI visual tests)
   config/       config.properties + config-local.properties (gitignored, local overrides)
+  locators/     6 JSON files (one per page) — login, navigation, products, product-details, cart, checkout
   testng/       testng.xml
 ```
 
@@ -78,8 +79,14 @@ Open reports directly from Finder/terminal (`open <path>`), not via IntelliJ's b
 - Pass any config value at runtime: `-Dbrowser.headless=true`, `-Dbrowser=firefox`, etc.
 
 ## Page Objects
-All page objects extend `BasePage`. Locators use `data-test` attributes wherever possible.
+All page objects extend `PlaywrightActions` (replaces deleted `BasePage`). Locators are stored in `src/test/resources/locators/<page>.json` and accessed via `LocatorStore.get(page, key)`. Prefer `[data-test='x']` selectors.
 - `LoginPage`, `ProductsPage`, `ProductDetailsPage`, `CartPage`, `CheckoutPage`, `NavigationComponent`
+
+## Locator Management
+- One JSON file per page in `src/test/resources/locators/`
+- `LocatorStore.get(page, key)` — loads and caches JSON, throws `ConfigurationException` on missing key
+- `LocatorStore.get(page, key, paramName, paramValue)` — resolves `{paramName}` template substitution for dynamic selectors
+- `LocatorStore.toLocatorToken(name)` — converts display name to data-test token (`"Sauce Labs Backpack"` → `"sauce-labs-backpack"`)
 
 ## Cucumber Tags
 | Tag | Meaning |

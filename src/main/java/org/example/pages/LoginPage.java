@@ -1,8 +1,9 @@
 package org.example.pages;
 
 import com.microsoft.playwright.Page;
+import org.example.utils.LocatorStore;
 
-public class LoginPage extends BasePage {
+public class LoginPage extends PlaywrightActions {
 
     public LoginPage(Page page) {
         super(page);
@@ -13,15 +14,15 @@ public class LoginPage extends BasePage {
     }
 
     public void enterUsername(String username) {
-        fill(page.locator("[data-test='username']"), username);
+        fill(page.locator(LocatorStore.get("login", "username")), username);
     }
 
     public void enterPassword(String password) {
-        fill(page.locator("[data-test='password']"), password);
+        fill(page.locator(LocatorStore.get("login", "password")), password);
     }
 
     public void clickLoginButton() {
-        click(page.locator("[data-test='login-button']"));
+        click(page.locator(LocatorStore.get("login", "loginButton")));
     }
 
     public void login(String username, String password) {
@@ -31,14 +32,14 @@ public class LoginPage extends BasePage {
     }
 
     public String getErrorMessage() {
-        return getText(page.locator("[data-test='error']"));
+        return getText(page.locator(LocatorStore.get("login", "errorMessage")));
     }
 
     public boolean isErrorDisplayed() {
-        return isVisible(page.locator("[data-test='error']"), 3000);
+        return isVisible(page.locator(LocatorStore.get("login", "errorMessage")), 3000);
     }
 
     public boolean isLoginPageDisplayed() {
-        return isVisible(page.locator("[data-test='login-button']"), timeout);
+        return isVisible(page.locator(LocatorStore.get("login", "loginButton")), timeout);
     }
 }

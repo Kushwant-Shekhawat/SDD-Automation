@@ -1,0 +1,10 @@
+{
+  "cartTitle":        ".title",
+  "cartList":         "div.cart_list",
+  "cartItem":         "div.cart_item",
+  "itemName":         ".inventory_item_name",
+  "itemPrice":        "div.inventory_item_price",
+  "itemQuantity":     "div.cart_quantity",
+  "continueShopping": "[data-test='continue-shopping']",
+  "checkoutButton":   "[data-test='checkout']"
+}

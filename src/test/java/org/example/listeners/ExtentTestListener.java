@@ -3,7 +3,6 @@ package org.example.listeners;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
-import org.example.driver.WebDriverManager;
 import org.example.utils.ConfigReader;
 import org.example.utils.LoggerUtil;
 import org.example.utils.ScreenshotUtil;
@@ -58,10 +57,8 @@ public class ExtentTestListener implements ITestListener {
 
     @Override
     public void onTestFailure(ITestResult result) {
-        String screenshotPath = ScreenshotUtil.captureScreenshot(
-                WebDriverManager.getPage(), result.getName());
-
         extentTest.get().fail(result.getThrowable());
+        String screenshotPath = ScreenshotUtil.getLastFailurePath();
         if (screenshotPath != null) {
             try {
                 extentTest.get().addScreenCaptureFromPath(screenshotPath, "Failure Screenshot");

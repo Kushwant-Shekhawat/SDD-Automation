@@ -36,7 +36,9 @@ public class BaseTest {
     public void tearDown(ITestResult result) {
         if (result.getStatus() == ITestResult.FAILURE) {
             if (ConfigReader.getBoolean("screenshot.on.failure", true)) {
-                ScreenshotUtil.captureScreenshot(page, result.getName());
+                ScreenshotUtil.initScenarioFolder(result.getName());
+                ScreenshotUtil.captureFailureScreenshot(page, result.getName());
+                ScreenshotUtil.cleanupScenario();
             }
             LoggerUtil.error("Test FAILED: " + result.getName());
         } else if (result.getStatus() == ITestResult.SUCCESS) {

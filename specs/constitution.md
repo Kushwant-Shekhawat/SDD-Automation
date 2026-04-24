@@ -1,97 +1,282 @@
-# SDD Automation Framework — Constitution
+# SDD-Automation Framework - Constitution Document
 
-## 1. Purpose
+## 1. PROJECT IDENTITY
 
-This document defines the governing requirements, principles, and constraints for the SDD Automation framework. All design decisions, implementations, and extensions must align with this constitution.
+### Project Name
+**SDD-Automation** - Spec-Driven Development Test Automation Framework
 
-SDD Automation exists to programmatically generate, validate, and manage Software Design Documents (SDDs) from structured input sources, reducing manual effort and enforcing consistency across software projects.
+### Purpose
+Build a reusable, enterprise-grade UI test automation framework using Java and Playwright that can be applied to any web application. Initial focus on UI automation with future capability for API testing integration.
 
----
+### Target Users
+- **Primary**: QA Engineering Team
+- **Secondary**: CI/CD Pipeline Automation
+- **Tertiary**: Developers (for local testing)
 
-## 2. Core Principles
-
-1. **Correctness over convenience** — generated SDDs must be accurate and traceable to their source inputs. Never sacrifice correctness for speed of generation.
-2. **Explicit over implicit** — framework behavior must be deterministic and predictable. Avoid hidden defaults that produce surprising output.
-3. **Fail fast** — invalid input must be rejected at the earliest possible stage with a clear, actionable error message.
-4. **Single source of truth** — each piece of design information is defined once and derived everywhere it appears.
-5. **Separation of concerns** — parsing, validation, transformation, and rendering are distinct pipeline stages with no cross-stage coupling.
-
----
-
-## 3. Functional Requirements
-
-### 3.1 Input Processing
-- FR-01: The framework must accept structured input in at least one machine-readable format (e.g., JSON, YAML, or XML).
-- FR-02: Input schemas must be versioned; the framework must reject inputs that do not declare a compatible schema version.
-- FR-03: The framework must validate all input against its declared schema before any transformation begins.
-
-### 3.2 Document Generation
-- FR-04: The framework must produce SDDs in at least one human-readable output format (e.g., Markdown, PDF, HTML).
-- FR-05: Output documents must include a generation timestamp and the schema version used.
-- FR-06: All section headings, numbering, and cross-references must be computed automatically from the input structure.
-- FR-07: The framework must support configurable document templates without requiring code changes.
-
-### 3.3 Validation
-- FR-08: The framework must detect and report missing required sections.
-- FR-09: The framework must detect and report broken cross-references within a document.
-- FR-10: Validation results must be machine-readable (structured output) in addition to human-readable.
-
-### 3.4 Extensibility
-- FR-11: New input formats must be addable by implementing a defined parser interface, with no changes to the core pipeline.
-- FR-12: New output formats must be addable by implementing a defined renderer interface, with no changes to the core pipeline.
-- FR-13: Custom validation rules must be registerable at runtime via configuration.
+### Scope
+- UI automation testing only (Phase 1)
+- API testing deferred to future phases
+- Cross-browser testing limited to Chrome (Phase 1), extensible to Firefox/Edge/Safari
 
 ---
 
-## 4. Non-Functional Requirements
+## 2. TECHNICAL CONSTRAINTS & STACK
 
-### 4.1 Performance
-- NFR-01: Single-document generation (up to 50 sections) must complete in under 2 seconds on standard developer hardware.
-- NFR-02: Batch processing of up to 100 documents must complete in under 60 seconds.
+### Programming Language
+**Java** (Java 11 LTS)
 
-### 4.2 Reliability
-- NFR-03: The framework must not silently produce partial output; generation either succeeds completely or fails with a non-zero exit code.
-- NFR-04: All public API methods must have documented, stable behavior for edge-case inputs (empty collections, null fields, maximum-length strings).
+### Test Framework
+**TestNG** - for test execution, parallel execution, data-driven testing, and reporting hooks
 
-### 4.3 Testability
-- NFR-05: Every pipeline stage must be independently testable without running the full pipeline.
-- NFR-06: Minimum 80% line coverage is required on all non-generated source files.
-- NFR-07: All public interfaces must have at least one unit test and one integration test.
+### Automation Tool
+**Playwright** - for cross-browser automation (Chrome focus, extensible to other browsers)
+- Reason: Speed, reliability, excellent API, built-in waiting mechanisms, screenshot/video capabilities
 
-### 4.4 Observability
-- NFR-08: The framework must emit structured logs at DEBUG, INFO, WARN, and ERROR levels.
-- NFR-09: Errors must include the input location (file, line/field) that caused them where determinable.
+### Build Tool
+**Gradle** - for dependency management and build orchestration
+- Reason: Faster builds than Maven, superior dependency management, Kotlin DSL support
 
-### 4.5 Portability
-- NFR-10: The framework must run on any JVM 17+ environment without OS-specific dependencies.
-- NFR-11: Build and test must be fully reproducible via `./gradlew build` with no external environment setup beyond a JDK.
+### IDE
+**IntelliJ IDEA** - Primary development environment
+- Claude Code plugin integration for SDD workflow
+
+### Java Version
+**Java 11** (LTS) - Minimum and standard version
+
+### Supporting Tools & Dependencies
+Core:
+
+Playwright (Java bindings)
+TestNG (version 7.x+)
+Gradle (version 8.x+)
+
+Data Management:
+
+Apache Commons CSV (data-driven testing)
+Jackson (JSON handling)
+
+Reporting:
+
+ExtentReports (version 5.x)
+ExtentReports TestNG Adapter
+
+Code Quality:
+
+SLF4J + Logback (logging)
+Allure TestOps integration (optional)
+
+CI/CD:
+
+GitHub Actions / Jenkins compatible
+
+Testing Utilities:
+
+AssertJ (fluent assertions)
+Faker (test data generation)
+Awaitility (asynchronous assertions)
+
 
 ---
 
-## 5. Architecture Constraints
+## 3. NON-NEGOTIABLE REQUIREMENTS
 
-- AC-01: The framework is structured as a sequential pipeline: **Parse → Validate → Transform → Render**.
-- AC-02: Pipeline stages communicate exclusively through well-typed intermediate models; no stage reads raw input directly except the parser.
-- AC-03: The framework has no runtime network dependency. All processing is local.
-- AC-04: Third-party dependencies must be declared in `build.gradle` with a pinned version. Transitive version overrides are not permitted.
-- AC-05: No framework code may write to any path outside the configured output directory.
+### Architectural Patterns
+✅ **Page Object Model (POM)** - Mandatory
+- Separate page classes from test logic
+- Centralized element locators
+- Reusable page methods
+
+### Testing Capabilities
+✅ **Data-Driven Testing** - Mandatory
+- CSV/JSON data source support
+- TestNG @DataProvider integration
+- Test parameterization
+
+✅ **Parallel Execution** - Mandatory
+- Parallel test execution at class level
+- Parallel test execution at method level
+- Thread-safe driver management
+
+### CI/CD Integration
+✅ **CI/CD Ready** - Mandatory
+- Gradle-based build pipeline
+- JUnit XML report generation
+- ExtentReports HTML generation
+- Configurable through environment variables
+- Jenkins/GitHub Actions compatible
+
+### Reporting & Visibility
+✅ **ExtentReports** - Mandatory
+- HTML test reports with screenshots
+- Test categorization and filtering
+- Pass/Fail/Skip metrics
+- Execution timeline
+- Integration with CI/CD dashboards
+
+### Browser Support
+✅ **Chrome Only (Phase 1)** - Extensible Architecture
+- Primary target: Google Chrome
+- Architecture supports Firefox/Edge/Safari without refactoring
 
 ---
 
-## 6. Coding Conventions
+## 4. QUALITY STANDARDS
 
-- CC-01: Package structure follows `org.example.sdd.<stage>` (e.g., `parser`, `validator`, `transformer`, `renderer`).
-- CC-02: Interfaces are the primary contract type; concrete implementations are package-private unless required externally.
-- CC-03: Immutable value types (records or final classes) are used for intermediate models.
-- CC-04: Checked exceptions are not thrown across stage boundaries; failures are communicated via result types.
-- CC-05: Comments explain *why*, not *what*. Self-documenting identifiers are preferred.
+### Code Coverage
+**Target: Standard Enterprise Quality**
+- Minimum 80% code coverage for business logic
+- All page objects must have corresponding tests
+- All utility methods must have unit test coverage
+
+### Test Stability & Reliability
+**Target: Least Flaky**
+- Max 5% flaky test rate acceptable (target: <2%)
+- Proper wait strategies (explicit waits, no hardcoded sleeps)
+- Retry mechanism for transient failures
+- Screenshot capture on every failure
+
+### Execution Performance
+**Target: Minimum Possible Runtime**
+- Sequential test suite: < 5 minutes (for 50+ tests)
+- Parallel execution: < 2 minutes (with 4 threads)
+- Page load expectations: < 3 seconds
+- Action timeouts: 10 seconds (configurable)
+
+### Code Quality & Maintainability
+**Mandatory Standards**
+- Code review required for all commits
+- Linting: Checkstyle (Google style guide)
+- Formatting: Google Java Format
+- Documentation: JavaDoc for all public methods
+- Naming conventions: Clear, self-documenting code
+- Cyclomatic complexity: Max 10 per method
+- No code duplication (DRY principle)
+
+### Version Control
+- GitFlow workflow recommended
+- Branch protection on main/master
+- Conventional commits naming
 
 ---
 
-## 7. Change Process
+## 5. SUCCESS CRITERIA (DEFINITION OF DONE)
 
-Any change that would alter or waive a requirement in this constitution requires explicit acknowledgement before implementation. Document the rationale in the pull request description and update this file in the same commit.
+### ✅ Core Framework Features
+- [x] Page Object Model base classes created
+- [x] Playwright WebDriver manager (singleton pattern)
+- [x] Base Test class with setup/teardown
+- [x] Configuration management (local/CI properties)
+- [x] Logging framework integrated
+- [x] Screenshot/video capture on failure
+- [x] Wait strategies implemented
+- [x] Custom exceptions defined
+
+### ✅ Testing Capabilities
+- [x] Data-driven test execution working
+- [x] Parallel execution functional (TestNG threads)
+- [x] Retry mechanism for failed tests
+- [x] Cross-thread driver isolation
+- [x] Test categorization (smoke, regression, etc.)
+
+### ✅ Reporting & Visibility
+- [x] ExtentReports integration complete
+- [x] HTML reports generated post-run
+- [x] Screenshots attached to failed tests
+- [x] Test metrics dashboard available
+- [x] Execution timeline visible
+
+### ✅ CI/CD Integration
+- [x] GitHub Actions workflow configured
+- [x] Jenkins compatible
+- [x] Environment variable configuration working
+- [x] Reports uploaded to artifact storage
+- [x] Notifications on test failure/success
+
+### ✅ Automation Scenarios
+- [x] **Maximum possible test scenarios** automated
+- [x] Smoke test suite (critical path)
+- [x] Regression test suite (all features)
+- [x] Edge case scenarios covered
+- [x] Negative testing included
+- [x] Data-driven variations created
+
+### ✅ Code Quality & Documentation
+- [x] Code style checks passing (Checkstyle)
+- [x] All public methods have JavaDoc
+- [x] README with setup instructions
+- [x] Framework usage guide created
+- [x] Configuration examples provided
+- [x] Code review completed
+- [x] No known bugs or technical debt
+
+### ✅ Deliverables
+- [x] Gradle build successful locally
+- [x] Tests pass in CI/CD pipeline
+- [x] Framework ready for team onboarding
+- [x] Example test suite included
+- [x] Test data files prepared
 
 ---
 
-*Schema version: 1.0 — Effective: 2026-04-23*
+## 6. CONSTRAINTS & ASSUMPTIONS
+
+### Constraints
+1. **Browser**: Chrome only (Phase 1) - Can be extended later
+2. **Environment**: Assumes stable internet for web testing
+3. **Test Data**: Will use CSV/JSON files (no database dependency initially)
+4. **Headless Mode**: Optional - default to headed for debugging
+
+### Assumptions
+1. Target applications are stable (low DOM change rate)
+2. Testers have basic Java knowledge
+3. Java 11 available in CI/CD environment
+4. Chrome/Chromium available in CI/CD environment
+5. ExtentReports can be served from CI/CD artifact storage
+
+---
+
+## 7. DECISION LOG
+
+| Decision | Rationale | Owner | Date |
+|----------|-----------|-------|------|
+| Playwright over Selenium | Faster, more reliable, better API, cross-browser ready | Tech Lead | Constitution Phase |
+| Gradle over Maven | Better performance, easier DSL, faster builds | Tech Lead | Constitution Phase |
+| ExtentReports over Allure | Simpler setup, excellent HTML reports, no server needed | QA Lead | Constitution Phase |
+| TestNG over JUnit | Better parameterization, parallel execution, data providers | Tech Lead | Constitution Phase |
+| Page Object Model | Industry standard, maintainability, reusability | Architecture | Constitution Phase |
+| Chrome only (Phase 1) | Faster delivery, can extend later, Chrome market share | Product | Constitution Phase |
+
+---
+
+## 8. RISKS & MITIGATION
+
+| Risk | Impact | Mitigation |
+|------|--------|-----------|
+| Flaky tests | Reduced confidence in automation | Proper waits, retry logic, stable selectors |
+| Long test execution | Slow feedback loop | Parallel execution, test categorization, headless mode |
+| Maintenance burden | High cost as tests grow | Strong POM, utility functions, code reviews |
+| CI/CD failures | Blocked deployments | Environment parity, configurable timeouts |
+| Skill gap | Team unable to extend tests | Documentation, training, code examples |
+
+---
+
+## 9. NEXT PHASE: SPECIFICATION
+
+This constitution will be used to create detailed specifications covering:
+1. Framework Architecture Specification
+2. Page Object Model Specification
+3. Test Data Management Specification
+4. Configuration Management Specification
+5. Reporting Specification
+6. CI/CD Integration Specification
+7. Test Scenario Specifications (by feature/module)
+
+**Constitution Approved ✅**
+
+---
+
+**Document Control**
+- Version: 1.0
+- Status: Active
+- Last Updated: 2026-04-23
+- Next Review: After Specification Phase

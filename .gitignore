@@ -12,3 +12,6 @@ out/
 
 # OS
 .DS_Store
+
+# Local config (contains environment-specific overrides, never commit)
+src/test/resources/config/config-local.properties

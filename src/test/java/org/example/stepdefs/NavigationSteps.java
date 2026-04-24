@@ -1,5 +1,7 @@
 package org.example.stepdefs;
 
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.LoadState;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -70,7 +72,8 @@ public class NavigationSteps {
 
     @And("I press the browser back button")
     public void iPressTheBrowserBackButton() {
-        ctx.page.goBack();
+        ctx.page.goBack(new Page.GoBackOptions().setTimeout(15000));
+        ctx.page.waitForLoadState(LoadState.DOMCONTENTLOADED);
     }
 
     @When("I enter a {int}-character username and password {string}")

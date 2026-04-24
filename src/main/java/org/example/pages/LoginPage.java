@@ -39,6 +39,6 @@ public class LoginPage extends BasePage {
     }
 
     public boolean isLoginPageDisplayed() {
-        return isVisible(page.locator("[data-test='login-button']"), 3000);
+        return isVisible(page.locator("[data-test='login-button']"), timeout);
     }
 }

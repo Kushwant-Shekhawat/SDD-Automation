@@ -1,6 +1,7 @@
 package org.example.pages;
 
 import com.microsoft.playwright.Page;
+import org.example.utils.ConfigReader;
 import org.example.utils.LocatorStore;
 
 public class NavigationComponent extends PlaywrightActions {
@@ -49,6 +50,6 @@ public class NavigationComponent extends PlaywrightActions {
         // Wait for React to re-render the menu after state reset (critical on slow CI)
         page.locator(LocatorStore.get("navigation", "menuOpen"))
                 .waitFor(new com.microsoft.playwright.Locator.WaitForOptions()
-                        .setTimeout(5000));
+                        .setTimeout(ConfigReader.getTimeout()));
     }
 }

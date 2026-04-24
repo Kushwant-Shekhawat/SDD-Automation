@@ -43,3 +43,7 @@ Feature: Multi-item cart management
     And I click on product "Sauce Labs Bolt T-Shirt"
     And I click back to products
     Then the cart badge should show "2"
+
+  Scenario: Add all 6 products and cart badge shows 6
+    When I add all products to the cart
+    Then the cart badge should show "6"

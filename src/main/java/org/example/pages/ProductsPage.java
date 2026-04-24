@@ -87,6 +87,10 @@ public class ProductsPage extends BasePage {
         return true;
     }
 
+    public void addAllProductsToCart() {
+        page.locator(".btn_inventory").all().forEach(btn -> btn.click());
+    }
+
     public boolean arePricesInDescendingOrder() {
         List<Double> prices = getProductPrices().stream()
                 .map(p -> Double.parseDouble(p.replace("$", "").trim()))

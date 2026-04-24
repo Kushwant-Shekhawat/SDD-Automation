@@ -5,63 +5,9 @@
         <listener class-name="org.example.listeners.ExtentTestListener"/>
     </listeners>
 
-    <test name="Login Tests">
+    <test name="Cucumber BDD Suite">
         <classes>
-            <class name="org.example.tests.LoginTest"/>
-        </classes>
-    </test>
-
-    <test name="Product Tests">
-        <classes>
-            <class name="org.example.tests.ProductTest"/>
-        </classes>
-    </test>
-
-    <test name="Product Sorting Tests">
-        <classes>
-            <class name="org.example.tests.ProductSortingTest"/>
-        </classes>
-    </test>
-
-    <test name="Product Details Tests">
-        <classes>
-            <class name="org.example.tests.ProductDetailsTest"/>
-        </classes>
-    </test>
-
-    <test name="Cart Tests">
-        <classes>
-            <class name="org.example.tests.CartTest"/>
-        </classes>
-    </test>
-
-    <test name="Multi-Item Cart Tests">
-        <classes>
-            <class name="org.example.tests.MultiItemCartTest"/>
-        </classes>
-    </test>
-
-    <test name="Checkout Tests">
-        <classes>
-            <class name="org.example.tests.CheckoutTest"/>
-        </classes>
-    </test>
-
-    <test name="Checkout Validation Tests">
-        <classes>
-            <class name="org.example.tests.CheckoutValidationTest"/>
-        </classes>
-    </test>
-
-    <test name="Logout Tests">
-        <classes>
-            <class name="org.example.tests.LogoutTest"/>
-        </classes>
-    </test>
-
-    <test name="Negative Flow Tests">
-        <classes>
-            <class name="org.example.tests.NegativeFlowTest"/>
+            <class name="org.example.runners.CucumberRunner"/>
         </classes>
     </test>
 

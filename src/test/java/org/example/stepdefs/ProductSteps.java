@@ -125,4 +125,14 @@ public class ProductSteps {
     public void theAddToCartButtonShouldBeVisibleOnDetailsPage() {
         assertThat(ctx.productDetailsPage.isAddToCartButtonVisible()).isTrue();
     }
+
+    @Then("the product list should include {string}")
+    public void theProductListShouldInclude(String productName) {
+        assertThat(ctx.productsPage.getProductNames()).contains(productName);
+    }
+
+    @When("I add all products to the cart")
+    public void iAddAllProductsToTheCart() {
+        ctx.productsPage.addAllProductsToCart();
+    }
 }

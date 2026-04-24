@@ -30,3 +30,11 @@ Feature: Login functionality
     When I enter username "standard_user" and password ""
     And I click the login button
     Then I should see an error message containing "Password is required"
+
+  Scenario: Login page is accessible via URL
+    Then I should be on the login page
+
+  Scenario: Performance glitch user can login successfully
+    When I enter username "performance_glitch_user" and password "secret_sauce"
+    And I click the login button
+    Then I should be on the products page

@@ -36,3 +36,9 @@ Feature: Checkout functionality
     When I click the checkout button
     And I click cancel on checkout
     Then I should be on the cart page
+
+  Scenario: Order summary shows correct item total
+    When I click the checkout button
+    And I enter first name "John", last name "Doe", and postal code "12345"
+    And I click continue on checkout
+    Then the item total should contain "29.99"

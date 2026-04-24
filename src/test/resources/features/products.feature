@@ -26,3 +26,7 @@ Feature: Products page functionality
     When I add "Sauce Labs Backpack" to the cart
     And I remove "Sauce Labs Backpack" from the cart
     Then the cart badge should not be visible
+
+  Scenario: All product names are visible
+    Then the product list should include "Sauce Labs Backpack"
+    And the product list should include "Sauce Labs Bike Light"

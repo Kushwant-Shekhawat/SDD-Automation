@@ -41,7 +41,7 @@ public class ExtentTestListener implements ITestListener {
     }
 
     @Override
-    public void onTestStart(ITestResult result) {
+    public synchronized void onTestStart(ITestResult result) {
         String testName = result.getMethod().getDescription();
         if (testName == null || testName.isEmpty()) {
             testName = result.getName();

@@ -18,7 +18,7 @@
 
 ### Directory
 
-```
+
 src/test/resources/locators/
 ├── login.json
 ├── products.json
@@ -26,35 +26,35 @@ src/test/resources/locators/
 ├── cart.json
 ├── checkout.json
 └── navigation.json
-```
+
 
 ### Static locator format
 
-```json
+json
 {
   "username":     "[data-test='username']",
   "password":     "[data-test='password']",
   "loginButton":  "[id='login-button']",
   "errorMessage": "[data-test='error']"
 }
-```
+
 
 ### Dynamic locator format (runtime template substitution)
 
 Use `{paramName}` placeholders. The value is substituted at call time by `LocatorStore`.
 
-```json
+json
 {
   "addToCartButton": "[data-test='add-to-cart-{productName}']",
   "removeButton":    "[data-test='remove-{productName}']",
   "productLink":     ".inventory_item:has-text('{productName}') a.inventory_item_name"
 }
-```
+
 
 ### Full file examples
 
 #### `login.json`
-```json
+json
 {
   "username":     "[data-test='username']",
   "password":     "[data-test='password']",
@@ -62,10 +62,10 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
   "errorMessage": "[data-test='error']",
   "errorDismiss": ".error-button"
 }
-```
+
 
 #### `products.json`
-```json
+json
 {
   "inventoryContainer": "div.inventory_container",
   "inventoryItem":      "div.inventory_item",
@@ -79,10 +79,10 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
   "removeButton":       "[data-test='remove-{productName}']",
   "productLink":        ".inventory_item:has-text('{productName}') a.inventory_item_name"
 }
-```
+
 
 #### `product-details.json`
-```json
+json
 {
   "productName":        ".inventory_details_name",
   "productDescription": ".inventory_details_desc",
@@ -93,10 +93,10 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
   "backToProducts":     "[data-test='back-to-products']",
   "cartLink":           "a.shopping_cart_link"
 }
-```
+
 
 #### `cart.json`
-```json
+json
 {
   "cartList":          "div.cart_list",
   "cartItem":          "div.cart_item",
@@ -107,10 +107,10 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
   "checkoutButton":    "[data-test='checkout']",
   "removeButton":      "button[data-test='remove-{itemName}']"
 }
-```
+
 
 #### `checkout.json`
-```json
+json
 {
   "firstName":         "[data-test='firstName']",
   "lastName":          "[data-test='lastName']",
@@ -130,10 +130,10 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
   "thankYouText":      "div.complete-text",
   "backHomeButton":    "[data-test='back-to-products']"
 }
-```
+
 
 #### `navigation.json`
-```json
+json
 {
   "menuButton":        "#react-burger-menu-btn",
   "menuContainer":     ".bm-menu-wrap",
@@ -144,7 +144,7 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
   "aboutLink":         "#about_sidebar_link",
   "resetLink":         "#reset_sidebar_link"
 }
-```
+
 
 ---
 
@@ -160,7 +160,7 @@ Use `{paramName}` placeholders. The value is substituted at call time by `Locato
 
 ### API
 
-```java
+java
 // Static locator — no substitution needed
 public static String get(String page, String key)
 
@@ -169,11 +169,11 @@ public static String get(String page, String key, Map<String, String> params)
 
 // Convenience single-param overload
 public static String get(String page, String key, String paramName, String paramValue)
-```
+
 
 ### Usage in page objects
 
-```java
+java
 // Static
 Locator username = page.locator(LocatorStore.get("login", "username"));
 
@@ -186,7 +186,7 @@ Locator addBtn = page.locator(
 Locator el = page.locator(
     LocatorStore.get("cart", "removeButton", Map.of("itemName", "sauce-labs-backpack"))
 );
-```
+
 
 ### Template substitution rules
 - Placeholder format: `{paramName}` (case-sensitive)
@@ -203,7 +203,7 @@ Locator el = page.locator(
 
 ### Constructor
 
-```java
+java
 public abstract class PlaywrightActions {
     protected final Page page;
     protected final int timeout;
@@ -213,7 +213,7 @@ public abstract class PlaywrightActions {
         this.timeout = ConfigReader.getTimeout();
     }
 }
-```
+
 
 ### Full method catalogue
 
@@ -320,7 +320,7 @@ public abstract class PlaywrightActions {
 ## 5. HOW PAGE OBJECTS CHANGE
 
 ### Before (current pattern)
-```java
+java
 public class LoginPage extends BasePage {
     private final Locator usernameInput = page.locator("[data-test='username']");
     private final Locator loginButton   = page.locator("[id='login-button']");
@@ -331,10 +331,10 @@ public class LoginPage extends BasePage {
         loginButton.click();
     }
 }
-```
+
 
 ### After (target pattern)
-```java
+java
 public class LoginPage extends PlaywrightActions {
 
     public LoginPage(Page page) {
@@ -351,7 +351,7 @@ public class LoginPage extends PlaywrightActions {
         return getText(page.locator(LocatorStore.get("login", "errorMessage")));
     }
 }
-```
+
 
 Key changes:
 - `extends BasePage` → `extends PlaywrightActions`
@@ -366,26 +366,26 @@ Key changes:
 Step defs primarily call page object methods. They should **not** be refactored to call `PlaywrightActions` directly unless the action genuinely does not belong in any page object (e.g. a one-off browser-level action in a negative flow test).
 
 ### Acceptable — step def calls page object
-```java
+java
 @When("I add {string} to cart")
 public void iAddToCart(String productName) {
     ctx.productsPage.addProductToCart(productName);
 }
-```
+
 
 ### Acceptable — step def calls PlaywrightActions directly (no page object owns this)
-```java
+java
 @When("I press the browser back button")
 public void iPressBack() {
     ctx.goBack();   // ctx exposes PlaywrightActions methods via shared page
 }
-```
+
 
 ### Not acceptable — step def calls Playwright API directly
-```java
+java
 // Wrong — bypasses both page object and PlaywrightActions
 ctx.page.locator("[data-test='username']").fill(username);
-```
+
 
 ---
 
@@ -435,10 +435,10 @@ ctx.page.locator("[data-test='username']").fill(username);
 
 When the same selector string appears in two different JSON files, it is immediately visible via a simple `grep` or IDE search across the `locators/` directory. This is the primary mechanism for spotting duplication — no tooling required, no runtime check needed.
 
-```bash
+bash
 # Find duplicate selector strings across all locator files
 grep -rh '"' src/test/resources/locators/ | sort | uniq -d
-```
+
 
 ---
 

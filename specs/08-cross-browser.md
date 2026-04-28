@@ -56,7 +56,7 @@ File: `src/test/resources/testng/testng-cross-browser.xml`
 
 The suite runs `CucumberRunner` — browser is passed via `-Dbrowser.type` at the command line, not as an XML parameter.
 
-```xml
+xml
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="Cross-Browser Suite" parallel="none" verbose="1" data-provider-thread-count="4">
 
@@ -76,16 +76,16 @@ The suite runs `CucumberRunner` — browser is passed via `-Dbrowser.type` at th
     </test>
 
 </suite>
-```
+
 
 `BaseTest` already supports browser overrides via `@BeforeTest`:
-```java
+java
 @Parameters("browser")
 @BeforeTest
 public void setBrowser(@Optional("chromium") String browser) {
     System.setProperty("browser.type", browser);
 }
-```
+
 
 
 ---

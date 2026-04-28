@@ -13,7 +13,7 @@
 
 ## 2. FOLDER STRUCTURE
 
-```
+
 SDD-Automation/
 ├── src/main/java/org/example/
 │   ├── driver/
@@ -85,7 +85,7 @@ SDD-Automation/
 ├── settings.gradle
 ├── gradle.properties
 └── .gitignore
-```
+
 
 ---
 
@@ -93,7 +93,7 @@ SDD-Automation/
 
 ### Actual dependency versions in use:
 
-```
+
 - Playwright:           1.51.0
 - TestNG:               7.7.0
 - ExtentReports:        5.0.9  (custom ITestListener — no adapter)
@@ -106,11 +106,11 @@ SDD-Automation/
 - JavaFaker:            1.0.2
 - Awaitility:           4.1.1
 - Masterthought cucumber-reporting: 5.7.5 (buildscript classpath only)
-```
+
 
 ### build.gradle summary:
 
-```gradle
+gradle
 buildscript {
     repositories { mavenCentral() }
     dependencies {
@@ -137,7 +137,7 @@ dependencies {
     testImplementation 'com.github.javafaker:javafaker:1.0.2'
     testImplementation 'org.awaitility:awaitility:4.1.1'
 }
-```
+
 
 ---
 
@@ -248,7 +248,7 @@ All in package `org.example.utils`.
 Config files live in `src/test/resources/config/`. The root `config.properties` (no subdirectory) is the primary file also loaded from classpath root.
 
 ### config.properties (Primary defaults)
-```
+
 base.url=https://www.saucedemo.com
 browser.type=chromium
 browser.headless=false
@@ -266,21 +266,21 @@ extent.report.title=SauceDemo Automation Report
 extent.report.name=SDD Automation Suite
 cucumber.report.path=build/reports/cucumber
 retry.count=1
-```
+
 
 ### config/config-local.properties (Local override)
-```
+
 browser.headless=true
 browser.timeout=10000
 browser.slow.mo=0
-```
+
 
 ### config/config-ci.properties (CI override — activated by ENV=ci)
-```
+
 browser.headless=true
 browser.timeout=15000
 screenshot.on.failure=true
-```
+
 
 ---
 
@@ -376,7 +376,7 @@ Visual comparison steps using `VisualCompareUtil` — used only with `@visual` t
 ## 12. TEST RUNNERS
 
 ### CucumberRunner.java
-```java
+java
 @CucumberOptions(
     features = "src/test/resources/features",
     glue = "org.example.stepdefs",
@@ -391,7 +391,7 @@ public class CucumberRunner extends AbstractTestNGCucumberTests {
     @DataProvider(parallel = true)
     public Object[][] scenarios() { return super.scenarios(); }
 }
-```
+
 - Outputs JSON to `build/reports/cucumber/cucumber-report.json`
 - Masterthought generates HTML from that JSON via Gradle task `generateCucumberReport`
 - No built-in `html:` plugin (causes XSS errors and inflated file size)
@@ -403,7 +403,7 @@ public class CucumberRunner extends AbstractTestNGCucumberTests {
 Five XML files in `src/test/resources/testng/`:
 
 ### testng.xml (Default — all Cucumber scenarios, parallel)
-```xml
+xml
 <suite name="SDD Automation Suite" parallel="none" data-provider-thread-count="4">
   <listeners>
     <listener class-name="org.example.listeners.ExtentTestListener"/>
@@ -414,7 +414,7 @@ Five XML files in `src/test/resources/testng/`:
     </classes>
   </test>
 </suite>
-```
+
 
 ### testng-cucumber.xml
 Identical to testng.xml — explicit alias for Cucumber-only runs.
@@ -436,38 +436,38 @@ Runs visual regression only — references `org.example.tests.VisualRegressionTe
 ## 14. EXECUTION MODELS
 
 ### Run all scenarios (default)
-```bash
+bash
 ./gradlew clean test
-```
+
 Uses `testng.xml` with `data-provider-thread-count="4"`. Expected: ~3–4 minutes.
 
 ### Smoke scenarios only
-```bash
+bash
 ./gradlew clean test -Dcucumber.filter.tags="@smoke"
-```
+
 Expected: ~45–60 seconds.
 
 ### Specific browser
-```bash
+bash
 ./gradlew clean test -Dbrowser.type=firefox
 ./gradlew clean test -Dbrowser.type=webkit
-```
+
 
 ### CI / headless
-```bash
+bash
 ENV=ci ./gradlew clean test
-```
+
 Activates `config-ci.properties` (headless=true, timeout=15000).
 
 ### Visual regression only (local)
-```bash
+bash
 ./gradlew clean test -Dcucumber.filter.tags="@visual"
-```
+
 
 ### Exclude visual from CI
-```bash
+bash
 ./gradlew clean test -Dcucumber.filter.tags="not @visual"
-```
+
 
 ---
 
@@ -498,14 +498,14 @@ Workflow: `.github/workflows/ci.yml`
 - Uploads `build/reports/` as artifact
 
 ### Run command for CI
-```bash
+bash
 ENV=ci ./gradlew clean test -Dcucumber.filter.tags="not @visual"
-```
+
 
 ### Install Playwright browsers (required first run in CI)
-```bash
+bash
 ./gradlew installPlaywright
-```
+
 
 ---
 
@@ -535,7 +535,7 @@ This is a **Cucumber BDD-only** framework. All 69 test scenarios are expressed a
 
 ## 19. QUICK START COMMANDS
 
-```bash
+bash
 # Install Playwright browsers (once)
 ./gradlew installPlaywright
 
@@ -559,7 +559,7 @@ open build/reports/extent/ExtentReport.html
 
 # Open Cucumber Masterthought report
 open build/reports/cucumber/html/cucumber-html-reports/overview-features.html
-```
+
 
 ---
 

@@ -37,7 +37,7 @@ Playwright's built-in `page.screenshot()` is used; diff images are saved to
 
 File: `src/main/java/org/example/utils/VisualCompareUtil.java`
 
-```java
+java
 public class VisualCompareUtil {
 
     private static final String BASELINE_DIR = "src/test/resources/visual-baselines/";
@@ -158,10 +158,10 @@ public class VisualCompareUtil {
 
 Visual regression runs through Cucumber, not a standalone TestNG class. All visual scenarios are in `src/test/resources/features/visual_regression.feature` and tagged `@visual`. They are executed via `VisualSteps.java` which calls `VisualCompareUtil.compareScreenshot()`.
 
-```bash
+bash
 # Run visual tests (local only)
 ./gradlew clean test -Dcucumber.filter.tags="@visual"
-```
+
 
 Visual tests are excluded from CI because baselines are Chromium-specific and are not committed for dynamic environments.
 
@@ -171,9 +171,9 @@ Visual tests are excluded from CI because baselines are Chromium-specific and ar
 
 To re-capture all baselines (e.g. after intentional UI change):
 
-```bash
+bash
 rm src/test/resources/visual-baselines/*.png
 ./gradlew clean test -Dcucumber.filter.tags="@visual"
-```
+
 
 The first run auto-saves baselines; subsequent runs compare against them.

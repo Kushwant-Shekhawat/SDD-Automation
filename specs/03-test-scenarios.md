@@ -8,12 +8,12 @@
 3. **Visual Tests** — Pixel-level screenshot comparison (`@visual`, local only)
 
 ### Test Suite Distribution
-```
+
 Total Cucumber Scenarios: 69 (across 11 feature files)
 ├── @smoke:      ~18 scenarios (login, products, checkout happy path)
 ├── @regression: ~63 scenarios (all except @visual)
 └── @visual:      6 scenarios  (excluded from CI, Chromium-only)
-```
+
 
 ---
 
@@ -53,13 +53,13 @@ These tests verify the happy path - the most critical business flows.
 - At least 6 products are displayed
 - Shopping cart icon is visible
 
-```gherkin
+gherkin
 Scenario: User can login with valid credentials
   Given User is on login page
   When User logs in with "standard_user" and "secret_sauce"
   Then User should see products page
   And Products count should be at least 6
-```
+
 
 ---
 
@@ -78,13 +78,13 @@ Scenario: User can login with valid credentials
 - Product count is exactly 6
 - All products are visible without scrolling
 
-```gherkin
+gherkin
 Scenario: All products are displayed on products page
   Given User is logged in
   When User navigates to products page
   Then User should see 6 products
   And Each product should have name, image, and price
-```
+
 
 ---
 
@@ -102,13 +102,13 @@ Scenario: All products are displayed on products page
 - Cart count badge shows "1"
 - Cart total shows 1 item
 
-```gherkin
+gherkin
 Scenario: User can add product to cart
   Given User is on products page
   When User adds "Sauce Labs Backpack" to cart
   Then Button text should change to "Remove"
   And Cart count should be 1
-```
+
 
 ---
 
@@ -127,12 +127,12 @@ Scenario: User can add product to cart
 - Cart badge shows "3"
 - All three products are added
 
-```gherkin
+gherkin
 Scenario: User can add multiple products to cart
   Given User is on products page
   When User adds 3 products to cart
   Then Cart count should be 3
-```
+
 
 ---
 
@@ -150,13 +150,13 @@ Scenario: User can add multiple products to cart
 - All 3 items are displayed in cart
 - Each item shows: name, price, quantity
 
-```gherkin
+gherkin
 Scenario: User can view shopping cart
   Given User has 3 items in cart
   When User clicks shopping cart icon
   Then User should be on cart page
   And All 3 items should be displayed
-```
+
 
 ---
 
@@ -176,13 +176,13 @@ Scenario: User can view shopping cart
 - Last Name input field is visible
 - Postal Code input field is visible
 
-```gherkin
+gherkin
 Scenario: User can proceed to checkout
   Given User is on cart page
   When User clicks Checkout button
   Then User should be on checkout step one page
   And Checkout form should be displayed
-```
+
 
 ---
 
@@ -205,14 +205,14 @@ Scenario: User can proceed to checkout
 - Order Complete page is displayed
 - Pony Express image is visible
 
-```gherkin
+gherkin
 Scenario: User can complete checkout successfully
   Given User is on checkout information page
   When User fills checkout form with valid data
   And User proceeds through checkout
   Then User should see thank you message
   And Order should be confirmed
-```
+
 
 ---
 
@@ -231,13 +231,13 @@ Scenario: User can complete checkout successfully
 - Login button is visible
 - Previous session is cleared
 
-```gherkin
+gherkin
 Scenario: User can logout from application
   Given User is logged in
   When User clicks menu button
   And User clicks logout option
   Then User should be on login page
-```
+
 
 ---
 
@@ -261,13 +261,13 @@ Scenario: User can logout from application
 - Error contains "Epic sadface: Username and password do not match any user in this service"
 - User remains on login page
 
-```gherkin
+gherkin
 Scenario: Login fails with invalid username
   Given User is on login page
   When User logs in with "invalid_user" and "secret_sauce"
   Then Error message should be displayed
   And Error text should mention username and password mismatch
-```
+
 
 ---
 
@@ -321,12 +321,12 @@ Scenario: Login fails with invalid username
 - First product is "Sauce Labs Backpack"
 - Last product is "Test.allTheThings() T-Shirt (Red)"
 
-```gherkin
+gherkin
 Scenario: User can sort products A-Z
   Given User is on products page
   When User sorts products by "Name (A to Z)"
   Then Products should be sorted alphabetically
-```
+
 
 ---
 
@@ -392,13 +392,13 @@ Scenario: User can sort products A-Z
 - Cart count decreases by 1
 - Button text changes to "Add to Cart"
 
-```gherkin
+gherkin
 Scenario: User can remove product from cart
   Given User has product in cart
   When User clicks remove button
   Then Product should be removed from cart
   And Cart count should decrease
-```
+
 
 ---
 
@@ -435,13 +435,13 @@ Scenario: User can remove product from cart
 - Product image is displayed
 - Add to Cart button is visible
 
-```gherkin
+gherkin
 Scenario: User can view product details
   Given User is on products page
   When User clicks on product name
   Then User should see product details page
   And All product information should be displayed
-```
+
 
 ---
 
@@ -459,12 +459,12 @@ Scenario: User can view product details
 - Total is calculated correctly
 - No rounding errors
 
-```gherkin
+gherkin
 Scenario: Cart total is calculated correctly
   Given User has products in cart
   When User views cart
   Then Cart total should equal sum of products
-```
+
 
 ---
 
@@ -485,14 +485,14 @@ Scenario: Cart total is calculated correctly
 - Error contains "Error: First Name is required"
 - User remains on checkout page
 
-```gherkin
+gherkin
 Scenario: Checkout form validates required fields
   Given User is on checkout information page
   When User leaves required field empty
   And User clicks continue
   Then Error message should be displayed
   And Validation error should be shown
-```
+
 
 ---
 
@@ -516,13 +516,13 @@ Scenario: Checkout form validates required fields
 - Thank you message is displayed
 - Order confirmation is shown
 
-```gherkin
+gherkin
 Scenario: Checkout succeeds with problem user (visual issues)
   Given User logs in as problem_user
   When User completes checkout
   Then Order should be successful
   And Thank you message should be displayed
-```
+
 
 ---
 
@@ -541,13 +541,13 @@ Scenario: Checkout succeeds with problem user (visual issues)
 - All operations complete successfully
 - No timeout errors occur
 
-```gherkin
+gherkin
 Scenario: System handles slow responses gracefully
   Given User logs in as performance_glitch_user
   When User interacts with application
   Then All operations should complete eventually
   And No timeout errors should occur
-```
+
 
 ---
 
@@ -567,13 +567,13 @@ Scenario: System handles slow responses gracefully
 - Cart count remains the same
 - Items are not lost
 
-```gherkin
+gherkin
 Scenario: Cart persists when navigating away
   Given User has items in cart
   When User navigates to other pages
   And Returns to products page
   Then Cart items should still be present
-```
+
 
 ---
 
@@ -599,13 +599,13 @@ Scenario: Cart persists when navigating away
 - User remains on checkout page
 - Cart items are preserved
 
-```gherkin
+gherkin
 Scenario: Checkout validates first name requirement
   Given User is on checkout page
   When User submits form without first name
   Then Error message should be shown
   And User should remain on same page
-```
+
 
 ---
 
@@ -626,13 +626,13 @@ Scenario: Checkout validates first name requirement
 - Or error is displayed if validation is implemented
 - User flow continues or error is shown appropriately
 
-```gherkin
+gherkin
 Scenario: Checkout handles invalid postal code
   Given User is on checkout page
   When User enters invalid postal code
   And User submits form
   Then System should handle appropriately
-```
+
 
 ---
 
@@ -674,33 +674,33 @@ Scenario: Checkout handles invalid postal code
 ## 8. TEST EXECUTION STRATEGY
 
 ### Sequential Execution
-```bash
+bash
 # Run all 25 tests sequentially
 gradle test
 # Expected: ~5 minutes
-```
+
 
 ### Parallel Execution (Recommended)
-```bash
+bash
 # Run tests in parallel (4 threads)
 gradle test --parallel --max-workers=4
 # Expected: ~2 minutes
-```
+
 
 ### Smoke Tests Only
-```bash
+bash
 # Run only smoke tests (8 tests)
 gradle test -DsuiteFile=testng-smoke.xml
 # Expected: ~45 seconds
-```
+
 
 ### By Category
-```bash
+bash
 # Run only regression tests
 gradle test -Dcategory=regression
 # Run only edge cases
 gradle test -Dcategory=edge-case
-```
+
 
 ---
 
@@ -766,7 +766,7 @@ This test scenarios specification will be reviewed for:
 **When**: User clicks the hamburger menu button
 **Then**: Menu slides open; when user clicks X, menu closes
 
-```gherkin
+gherkin
 Feature: Logout functionality
   Background:
     Given I am logged in as "standard_user" with password "secret_sauce"
@@ -794,7 +794,7 @@ Feature: Logout functionality
     Then the navigation menu should be visible
     When I close the navigation menu
     Then the navigation menu should not be visible
-```
+
 
 ---
 
@@ -821,7 +821,7 @@ Feature: Logout functionality
 ### PS-006: All products remain visible after each sort
 **Category**: Regression | **Priority**: P2 — product count always 6
 
-```gherkin
+gherkin
 Feature: Product sorting functionality
   Background:
     Given I am logged in as "standard_user" with password "secret_sauce"
@@ -852,7 +852,7 @@ Feature: Product sorting functionality
     And I click on product "Sauce Labs Onesie"
     And I click back to products
     Then the first product price should be "$7.99"
-```
+
 
 ---
 
@@ -876,7 +876,7 @@ Feature: Product sorting functionality
 ### PD-008: All 6 products have accessible detail pages
 **Category**: Regression | **Priority**: P2
 
-```gherkin
+gherkin
 Feature: Product details page functionality
   Background:
     Given I am logged in as "standard_user" with password "secret_sauce"
@@ -910,7 +910,7 @@ Feature: Product details page functionality
     Then I should be on the product details page
     When I click back to products
     Then I should be on the products page
-```
+
 
 ---
 
@@ -937,7 +937,7 @@ Feature: Product details page functionality
 ### MC-007: Remove all items — cart is empty at checkout
 **Category**: Regression | **Priority**: P1
 
-```gherkin
+gherkin
 Feature: Multi-item cart management
   Background:
     Given I am logged in as "standard_user" with password "secret_sauce"
@@ -978,7 +978,7 @@ Feature: Multi-item cart management
     And I click on product "Sauce Labs Bolt T-Shirt"
     And I click back to products
     Then the cart badge should show "2"
-```
+
 
 ---
 
@@ -999,7 +999,7 @@ Feature: Multi-item cart management
 | CV-009 | Special chars in name | Proceeds to step two without error |
 | CV-010 | Very long postal code | Form submits (SauceDemo accepts any non-empty value) |
 
-```gherkin
+gherkin
 Feature: Checkout form validation
   Background:
     Given I am logged in as "standard_user" with password "secret_sauce"
@@ -1052,4 +1052,3 @@ Feature: Checkout form validation
     When I enter first name "John-O'Brien", last name "Müller", and postal code "SW1A 1AA"
     And I click continue on checkout
     Then I should be on checkout step two
-```

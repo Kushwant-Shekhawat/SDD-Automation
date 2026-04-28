@@ -515,14 +515,14 @@ Filter by text (for product-specific buttons):
 
 ### Public Methods
 
-```java
+java
 public void openMenu()
 public void closeMenu()
 public void logout()
 public void clickAllItems()
 public void resetAppState()
 public boolean isMenuVisible()   // checks .bm-menu-wrap[aria-hidden="false"]
-```
+
 
 ---
 
@@ -547,7 +547,7 @@ public boolean isMenuVisible()   // checks .bm-menu-wrap[aria-hidden="false"]
 
 ### Additional Public Methods
 
-```java
+java
 public String getFirstProductName()
 public String getLastProductName()
 public String getFirstProductPrice()
@@ -555,7 +555,7 @@ public String getLastProductPrice()
 public boolean arePricesInAscendingOrder()
 public boolean arePricesInDescendingOrder()
 public void addAllProductsToCart()   // clicks all .btn_inventory buttons
-```
+
 
 ---
 
@@ -575,7 +575,7 @@ public void addAllProductsToCart()   // clicks all .btn_inventory buttons
 
 ### Additional Public Methods
 
-```java
+java
 public String getProductPrice()
 public String getProductDescription()
 public boolean isProductImageVisible()
@@ -583,7 +583,7 @@ public boolean isAddToCartButtonVisible()
 public boolean isRemoveButtonVisible()
 public void addToCart()
 public void removeFromCart()
-```
+
 
 ---
 
@@ -591,17 +591,17 @@ public void removeFromCart()
 
 ### CartPage
 
-```java
+java
 public int getCartItemCount()   // count of .cart_item elements
-```
+
 
 ### CheckoutPage — Error & Totals
 
-```java
+java
 public void dismissError()           // clicks .error-button
 public boolean isErrorVisible()      // [data-test="error"] visible within 2s
 public String getItemTotal()         // .summary_subtotal_label
 public String getTaxAmount()         // .summary_tax_label
 public String getOrderTotal()        // .summary_total_label
 public double parsePrice(String priceLabel)  // strips non-numeric chars
-```
+

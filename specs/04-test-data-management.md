@@ -15,14 +15,14 @@
 
 ### Directory Structure
 
-```
+
 src/test/resources/testdata/
 ├── login_valid.csv
 ├── login_invalid.csv
 ├── products.csv
 ├── checkout.csv
 └── checkout_invalid.csv
-```
+
 
 ---
 
@@ -32,24 +32,24 @@ src/test/resources/testdata/
 
 **Purpose**: Valid credentials for positive login scenarios
 
-```csv
+csv
 username,password,expectedResult
 standard_user,secret_sauce,success
 performance_glitch_user,secret_sauce,success
-```
+
 
 ### File: login_invalid.csv
 
 **Purpose**: Negative login scenarios — locked user, wrong password, empty fields
 
-```csv
+csv
 username,password,expectedError
 locked_out_user,secret_sauce,Epic sadface: Sorry, this user has been locked out.
 standard_user,wrong_password,Epic sadface: Username and password do not match any user in this service
 invalid_user,secret_sauce,Epic sadface: Username and password do not match any user in this service
 ,secret_sauce,Epic sadface: Username is required
 standard_user,,Epic sadface: Password is required
-```
+
 
 ---
 
@@ -59,7 +59,7 @@ standard_user,,Epic sadface: Password is required
 
 **Purpose**: Product reference data (names, prices) used in step definitions for assertions
 
-```csv
+csv
 productName,price,description
 Sauce Labs Backpack,$29.99,carry.allTheThings() with the sleek
 Sauce Labs Bike Light,$9.99,A red light isn't the desired state
@@ -67,7 +67,7 @@ Sauce Labs Bolt T-Shirt,$15.99,Get your testing superhero on
 Sauce Labs Fleece Jacket,$49.99,It's not every day that you come across
 Sauce Labs Onesie,$7.99,Rib snap infant onesie for the junior automation engineer
 Test.allTheThings() T-Shirt (Red),$15.99,This classic Sauce Labs t-shirt
-```
+
 
 ### Data Field Definitions
 
@@ -80,7 +80,7 @@ Test.allTheThings() T-Shirt (Red),$15.99,This classic Sauce Labs t-shirt
 ### Product Test Scenarios
 
 #### Price Range Tests
-```csv
+csv
 # Low price products
 2,Sauce Labs Onesie,7.99,apparel,Onesie,IN_STOCK
 2,Sauce Labs Bike Light,9.99,lights,Light,IN_STOCK
@@ -91,10 +91,10 @@ Test.allTheThings() T-Shirt (Red),$15.99,This classic Sauce Labs t-shirt
 
 # High price products
 4,Sauce Labs Fleece Jacket,49.99,apparel,Jacket,IN_STOCK
-```
+
 
 #### Sort Test Data
-```csv
+csv
 # For A-Z sort test
 productName_sorted
 Sauce Labs Backpack
@@ -112,7 +112,7 @@ Sauce Labs Bolt T-Shirt (15.99)
 Test.allTheThings() T-Shirt (15.99)
 Sauce Labs Backpack (29.99)
 Sauce Labs Fleece Jacket (49.99)
-```
+
 
 ---
 
@@ -139,12 +139,12 @@ There is no `cart-data.csv` file. Cart test scenarios use inline product names f
 
 **Purpose**: Valid checkout data for successful order completion
 
-```csv
+csv
 firstName,lastName,postalCode
 John,Doe,12345
 Jane,Smith,67890
 Alice,Johnson,10001
-```
+
 
 ---
 
@@ -152,12 +152,12 @@ Alice,Johnson,10001
 
 **Purpose**: Invalid checkout data for form validation negative tests
 
-```csv
+csv
 firstName,lastName,postalCode,expectedError
 ,,12345,Error: First Name is required
 John,,12345,Error: Last Name is required
 John,Doe,,Error: Postal Code is required
-```
+
 
 ### Data Field Definitions
 
@@ -174,7 +174,7 @@ John,Doe,,Error: Postal Code is required
 
 ### Java Code Example: TestDataProvider.java
 
-```java
+java
 package org.example.utils;
 
 import org.apache.commons.csv.CSVFormat;
@@ -284,7 +284,7 @@ public class TestDataProvider {
         return records;
     }
 }
-```
+
 
 ---
 
@@ -294,7 +294,7 @@ CSV data is read by `TestDataProvider.java` and can be used in step definitions 
 
 ### Example: reading checkout data in a step definition
 
-```java
+java
 // In CheckoutSteps.java or a data-driven scenario
 List<CSVRecord> records = TestDataProvider.readCsv("checkout.csv");
 for (CSVRecord record : records) {
@@ -302,7 +302,7 @@ for (CSVRecord record : records) {
     String lastName   = record.get("lastName");
     String postalCode = record.get("postalCode");
 }
-```
+
 
 Most test scenarios use inline data in Cucumber `Examples:` tables rather than loading CSV at runtime. The CSV files serve as the master reference for expected values and for bulk data scenarios.
 

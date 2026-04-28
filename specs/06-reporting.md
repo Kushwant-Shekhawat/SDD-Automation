@@ -27,36 +27,36 @@ Screenshots are **not** captured inside `ExtentTestListener` itself. They are at
 - `@After` — captures failure screenshot if scenario failed and attaches to `ExtentTest`
 
 Paths must be **relative from the report HTML file location** (`build/reports/extent/`). `Hooks.java` computes this with:
-```java
+java
 REPORT_DIR.relativize(Paths.get(absolutePath).toAbsolutePath())
-```
+
 
 ### Key methods in `ExtentTestListener.java`
 
-```java
+java
 public static ExtentTest getCurrentTest()   // thread-safe via ThreadLocal
-```
+
 
 ### `onTestFailure`
-```java
+java
 @Override
 public void onTestFailure(ITestResult result) {
     extentTest.get().fail(result.getThrowable());
     // Screenshot already attached by Hooks.java @After
 }
-```
+
 
 ### Config keys used
-```properties
+properties
 extent.report.path=build/reports/extent/ExtentReport.html
 extent.report.title=SauceDemo Automation Report
 extent.report.name=SDD Automation Suite
-```
+
 
 ### Gradle dependency
-```groovy
+groovy
 testImplementation 'com.aventstack:extentreports:5.0.9'
-```
+
 No adapter library — `ExtentTestListener` is a hand-written `ITestListener`.
 
 ---
@@ -65,15 +65,15 @@ No adapter library — `ExtentTestListener` is a hand-written `ITestListener`.
 
 ### How it works
 `CucumberRunner` writes a JSON report during the test run:
-```java
+java
 plugin = { "pretty", "json:build/reports/cucumber/cucumber-report.json" }
-```
+
 After the `test` task completes, the Gradle task `generateCucumberReport` processes the JSON and generates a full HTML report.
 
 The built-in Cucumber `html:` plugin is **not used** — it generates JavaScript that triggers browser XSS security dialogs and produces inflated (~76 MB) HTML files.
 
 ### Gradle task
-```groovy
+groovy
 buildscript {
     dependencies {
         classpath('net.masterthought:cucumber-reporting:5.7.5') {
@@ -97,7 +97,7 @@ task generateCucumberReport {
 }
 
 test { finalizedBy 'generateCucumberReport' }
-```
+
 
 ### Screenshot embedding
 `Hooks.java @AfterStep` attaches step screenshots via `scenario.attach(byte[], "image/png", name)`. Masterthought saves these as external files in `build/reports/cucumber/html/cucumber-html-reports/embeddings/` — keeps individual HTML pages small while still showing all screenshots.
@@ -114,7 +114,7 @@ Masterthought is used by the Gradle build script itself (in `doLast`), not by te
 - `Hooks.java` — calls `ScreenshotUtil`, attaches results to both reports
 
 ### Folder structure per run
-```
+
 build/reports/screenshots/
 └── 2026-04-24_14-30-00/          ← run timestamp folder (one per JVM)
     └── Valid_login_standard_user/ ← scenario folder (sanitized name)
@@ -122,7 +122,7 @@ build/reports/screenshots/
         ├── step_02.png
         ├── step_03.png
         └── Failed_Step_Valid_login....png   ← only on failure
-```
+
 
 ### Flow
 1. `Hooks @Before` → `ScreenshotUtil.initScenarioFolder(scenario.getName())`
@@ -134,13 +134,13 @@ build/reports/screenshots/
 
 ## 5. OPENING REPORTS
 
-```bash
+bash
 # Extent Report
 open build/reports/extent/ExtentReport.html
 
 # Cucumber Masterthought Report
 open build/reports/cucumber/html/cucumber-html-reports/overview-features.html
-```
+
 
 ---
 

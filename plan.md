@@ -63,9 +63,9 @@ chaining stays in the page object method.
 ---
 
 ## Success criteria
-- [ ] `./gradlew compileJava compileTestJava` exits 0
-- [ ] `BasePage.java` deleted
-- [ ] All 6 page objects extend `PlaywrightActions`
-- [ ] Zero hardcoded selector strings in any page object Java file
-- [ ] All 69 Cucumber scenarios pass headless
-- [ ] `CLAUDE.md` updated
+- [x] `./gradlew compileJava compileTestJava` exits 0
+- [x] `BasePage.java` deleted
+- [x] All 6 page objects extend `PlaywrightActions`
+- [x] Zero hardcoded selector strings in any page object Java file
+- [x] All 69 Cucumber scenarios pass headless
+- [x] `CLAUDE.md` updated

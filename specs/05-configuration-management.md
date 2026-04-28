@@ -18,13 +18,13 @@
 
 ## 2. CONFIGURATION FILES STRUCTURE
 
-```
+
 src/test/resources/
 ├── config.properties                # Base defaults (classpath root)
 └── config/
     ├── config-local.properties      # Local machine overrides
     └── config-ci.properties         # CI/CD pipeline overrides
-```
+
 
 ---
 
@@ -32,7 +32,7 @@ src/test/resources/
 
 ### File: `config.properties`
 
-```properties
+properties
 base.url=https://www.saucedemo.com
 
 browser.type=chromium
@@ -56,7 +56,7 @@ extent.report.name=SDD Automation Suite
 cucumber.report.path=build/reports/cucumber
 
 retry.count=1
-```
+
 
 ---
 
@@ -66,11 +66,11 @@ retry.count=1
 
 Activated when `ENV=local` (the default when `ENV` is not set).
 
-```properties
+properties
 browser.headless=true
 browser.timeout=10000
 browser.slow.mo=0
-```
+
 
 ---
 
@@ -80,11 +80,11 @@ browser.slow.mo=0
 
 Activated when `ENV=ci` is set as a system property or environment variable.
 
-```properties
+properties
 browser.headless=true
 browser.timeout=15000
 screenshot.on.failure=true
-```
+
 
 ---
 
@@ -92,7 +92,7 @@ screenshot.on.failure=true
 
 ### Actual implementation in `ConfigReader.java`
 
-```java
+java
 static {
     loadProperties("config.properties");
     String env = System.getProperty("ENV", System.getenv("ENV") != null
@@ -104,7 +104,7 @@ static {
     }
     properties.putAll(System.getProperties());
 }
-```
+
 
 ### Public API
 
@@ -126,27 +126,27 @@ static {
 ## 7. USAGE IN CODE
 
 ### WebDriverManager
-```java
+java
 String browserType = ConfigReader.getBrowserType();
 boolean headless = ConfigReader.isHeadless();
 int slowMo = ConfigReader.getInt("browser.slow.mo", 0);
-```
+
 
 ### BasePage
-```java
+java
 this.timeout = ConfigReader.getTimeout();
-```
+
 
 ### BaseTest
-```java
+java
 page.navigate(ConfigReader.getBaseUrl());
-```
+
 
 ---
 
 ## 8. RUNNING TESTS WITH DIFFERENT CONFIGURATIONS
 
-```bash
+bash
 # Default (local overrides)
 ./gradlew clean test
 
@@ -158,7 +158,7 @@ ENV=ci ./gradlew clean test
 
 # Override headless at runtime
 ./gradlew clean test -Dbrowser.headless=false
-```
+
 
 ---
 

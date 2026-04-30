@@ -9,6 +9,8 @@ CLAUDE.md file in the same commit to keep it accurate.
 UI test automation framework for [SauceDemo](https://www.saucedemo.com) built using
 Spec-Driven Development (SDD). Stack: Java 11 + Playwright 1.51.0 + TestNG 7.7.0 + Cucumber 7.14.0.
 
+Public-facing docs: `README.md` (root) — update whenever stack versions, report paths, or project structure change.
+
 ## Key Commands
 
 ```bash

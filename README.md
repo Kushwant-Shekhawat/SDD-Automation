@@ -8,7 +8,7 @@
 
 End-to-end UI test automation framework for [SauceDemo](https://www.saucedemo.com), built using **Spec-Driven Development (SDD)** — every implementation decision is traceable to a written specification that existed before the first line of code.
 
-**69 scenarios · 11 feature files · 3 browsers · 4 parallel threads · dual HTML reports**
+**67 scenarios · 11 feature files · 3 browsers · 4 parallel threads · dual HTML reports**
 
 ---
 
@@ -105,14 +105,16 @@ src/test/resources/
 
 | Feature area | Scenarios | Tags |
 |---|---|---|
-| Login (valid + invalid users) | 10 | `@login` |
-| Logout | 5 | `@logout` |
-| Product listing + sorting | 9 | `@products` |
-| Product details | 6 | `@product_details` |
-| Cart (single + multi-item) | 16 | `@cart` |
-| Checkout happy path | 8 | `@checkout` |
-| Checkout field validation | 10 | `@checkout` |
-| Negative flows | 5 | — |
+| Login (valid + invalid users) | 7 | `@login` |
+| Logout + menu navigation | 4 | `@logout` |
+| Product listing | 6 | `@products` |
+| Product sorting | 6 | `@products` |
+| Product details | 5 | `@product_details` |
+| Cart — single item | 4 | `@cart` |
+| Cart — multi-item | 6 | `@cart` |
+| Checkout happy path | 6 | `@checkout` |
+| Checkout field validation | 9 | `@checkout` |
+| Negative flows + security | 8 | — |
 | Visual regression (Chromium only) | 6 | `@visual` |
 
 ---

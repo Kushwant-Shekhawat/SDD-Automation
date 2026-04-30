@@ -46,7 +46,7 @@ src/test/java/org/example/
   base/         BaseTest.java
 
 src/test/resources/
-  features/     11 .feature files (69 scenarios total, @visual tag excludes CI visual tests)
+  features/     11 .feature files (67 scenarios total, @visual tag excludes CI visual tests)
   config/       config.properties + config-local.properties (gitignored, local overrides)
   locators/     6 JSON files (one per page) — login, navigation, products, product-details, cart, checkout
   testng/       testng.xml
